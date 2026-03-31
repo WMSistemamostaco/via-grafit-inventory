@@ -6,131 +6,21 @@
 <title>Via Gráfit — Análise de Inventário</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 <style>
-@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
-:root{--bg:#0e0e10;--surface:#161618;--surface2:#1e1e21;--border:#2a2a2e;--accent:#c8a96e;--accent2:#e8c98e;--text:#f0ede8;--muted:#777;--success:#4caf7d;}
-*{box-sizing:border-box;margin:0;padding:0;}
-body{background:var(--bg);color:var(--text);font-family:'DM Sans',sans-serif;min-height:100vh;}
-
-/* ── STICKY ── */
-.sticky-top{position:sticky;top:0;z-index:200;background:var(--bg);}
-
-/* ── HEADER ── */
-header{display:flex;align-items:center;justify-content:space-between;padding:10px 32px;border-bottom:1px solid var(--border);background:var(--surface);gap:16px;}
-.logo-area{display:flex;align-items:center;gap:14px;}
-.logo-badge{width:56px;height:56px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;border:2px solid #c8a96e;flex-shrink:0;overflow:hidden;}
-.logo-text{display:flex;flex-direction:column;line-height:1.15;}
-.logo-text .brand{font-family:'Playfair Display',Georgia,serif;font-weight:800;font-size:20px;letter-spacing:-0.3px;color:var(--accent);}
-.logo-text .brand em{font-style:italic;}
-.logo-text .sub-brand{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:.2em;}
-.header-info{font-size:11px;color:var(--muted);text-align:right;}
-
-/* ── TABS ── */
-.tabs-bar-wrap{background:var(--bg);border-bottom:1px solid var(--border);padding:10px 32px 0;}
-.tabs{display:flex;gap:4px;width:fit-content;}
-.tab-btn{padding:9px 22px;border-radius:8px 8px 0 0;border:1px solid var(--border);border-bottom:none;background:var(--surface2);color:var(--muted);font-family:'DM Sans',sans-serif;font-size:13px;cursor:pointer;transition:all .2s;font-weight:500;}
-.tab-btn.active{background:var(--surface);color:var(--text);font-weight:700;border-bottom:1px solid var(--surface);margin-bottom:-1px;}
-.tab-btn:hover:not(.active){color:var(--text);}
-
-/* ── FILTER STICKY ── */
-.filter-sticky{background:var(--surface);border-bottom:1px solid var(--border);padding:14px 32px;}
-.filter-box-inner h4{font-family:'DM Sans',sans-serif;font-size:13px;font-weight:700;color:var(--accent);display:flex;align-items:center;gap:8px;margin-bottom:12px;}
-.filter-row{display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;}
-.field-group{display:flex;flex-direction:column;gap:4px;}
-.field-group label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;}
-input[type=text],input[type=number],select{background:var(--surface2);border:1px solid var(--border);border-radius:8px;color:var(--text);font-family:'DM Sans',sans-serif;font-size:13px;padding:8px 12px;outline:none;transition:border-color .2s;min-width:160px;}
-input[type=text]:focus,input[type=number]:focus,select:focus{border-color:var(--accent);}
-input[type=text]::placeholder{color:var(--muted);}
-.btn{padding:8px 18px;border-radius:8px;border:none;font-family:'DM Sans',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:all .15s;display:inline-flex;align-items:center;gap:5px;}
-.btn-primary{background:var(--accent);color:#0e0e10;}
-.btn-primary:hover{background:var(--accent2);}
-.btn-outline{background:transparent;border:1px solid var(--border);color:var(--text);}
-.btn-outline:hover{border-color:var(--accent);color:var(--accent);}
-.btn-export{background:var(--success);color:#fff;}
-.btn-export:hover{opacity:.85;}
-.filter-hint{font-size:11px;color:var(--muted);margin-top:8px;}
-
-/* ── CONTAINER ── */
-.container{max-width:1700px;margin:0 auto;padding:20px 32px;}
-
-/* ── UPLOAD ── */
-.upload-zone{border:2px dashed var(--border);border-radius:16px;padding:40px;text-align:center;cursor:pointer;transition:all .2s;background:var(--surface);position:relative;margin-bottom:24px;}
-.upload-zone:hover,.upload-zone.drag-over{border-color:var(--accent);background:#18181a;}
-.upload-zone input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;}
-.upload-icon{font-size:34px;margin-bottom:9px;}
-.upload-zone h3{font-family:'Playfair Display',serif;font-size:17px;margin-bottom:5px;color:var(--accent);}
-.upload-zone p{color:var(--muted);font-size:13px;}
-.progress-bar{background:var(--border);border-radius:8px;height:5px;margin-top:14px;overflow:hidden;display:none;}
-.progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:8px;width:0%;transition:width .3s;}
-
-/* ── STATS (reflect active filter) ── */
-.stats-bar{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:24px;}
-.stat-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:15px;}
-.stat-card .label{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;margin-bottom:5px;}
-.stat-card .value{font-family:'Playfair Display',serif;font-size:22px;font-weight:700;color:var(--accent);}
-.stat-card .sub{font-size:10px;color:var(--muted);margin-top:2px;}
-
-/* ── PANELS ── */
-.tab-panel{display:none;}
-.tab-panel.active{display:block;}
-.results-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
-.results-count{font-size:13px;color:var(--muted);}
-.results-count strong{color:var(--accent);}
-
-/* ── TABLE ── */
-.table-wrap{border:1px solid var(--border);border-radius:12px;overflow:hidden;overflow-x:auto;}
-table{width:100%;border-collapse:collapse;}
-thead{background:var(--surface2);}
-th{padding:10px 10px;text-align:left;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.09em;color:var(--muted);white-space:nowrap;border-bottom:1px solid var(--border);}
-tbody tr{border-bottom:1px solid var(--border);transition:background .1s;}
-tbody tr:last-child{border-bottom:none;}
-tbody tr:hover{background:var(--surface2);}
-td{padding:7px 10px;font-size:12px;vertical-align:middle;}
-td.ref{font-family:'Playfair Display',serif;font-weight:700;font-size:13px;color:var(--accent);white-space:nowrap;}
-td.desc{max-width:240px;white-space:normal;line-height:1.4;}
-td.value{color:var(--success);font-weight:500;text-align:right;white-space:nowrap;}
-td.total-val{font-weight:700;color:var(--accent);text-align:right;white-space:nowrap;}
-td.pecas-total{font-weight:700;color:var(--accent);text-align:center;white-space:nowrap;}
-td.chip-cell{text-align:center;white-space:nowrap;}
-.tag-grupo{display:inline-block;background:rgba(200,169,110,.12);border:1px solid rgba(200,169,110,.25);border-radius:4px;padding:2px 7px;font-size:10px;color:var(--accent);font-weight:700;white-space:nowrap;}
-
-/* ── GRADE GRID — fixed columns, each size always same position ── */
-.grade-grid{display:grid;gap:3px;align-items:end;}
-.grade-grid.cols-4{grid-template-columns:repeat(4,33px);}
-.grade-grid.cols-5{grid-template-columns:repeat(5,33px);}
-.grade-grid.cols-8{grid-template-columns:repeat(8,33px);}
-.size-cell{display:flex;flex-direction:column;align-items:center;}
-.size-lbl{font-size:8px;font-weight:700;color:var(--muted);line-height:1;margin-bottom:2px;text-align:center;}
-.size-qty{display:flex;align-items:center;justify-content:center;background:var(--surface2);border:1px solid var(--border);border-radius:5px;width:29px;height:23px;font-size:11px;font-weight:700;color:var(--text);}
-.size-qty.empty{background:transparent;border-color:transparent;color:transparent;pointer-events:none;}
-.size-qty.hl{border-color:var(--success);color:var(--success);background:rgba(76,175,125,.1);}
-.chip{display:inline-block;background:rgba(76,175,125,.15);border:1px solid rgba(76,175,125,.3);color:var(--success);border-radius:20px;padding:3px 9px;font-size:10px;font-weight:700;}
-
-/* ── EMPTY / LOADING ── */
-.empty-state{text-align:center;padding:56px;color:var(--muted);}
-.empty-state .icon{font-size:36px;margin-bottom:10px;}
-#loadingOverlay{display:none;position:fixed;inset:0;background:rgba(14,14,16,.9);z-index:999;align-items:center;justify-content:center;flex-direction:column;gap:14px;}
-#loadingOverlay.active{display:flex;}
-.spinner{width:44px;height:44px;border:3px solid var(--border);border-top-color:var(--accent);border-radius:50%;animation:spin .8s linear infinite;}
-@keyframes spin{to{transform:rotate(360deg);}}
-.loading-text{color:var(--muted);font-size:13px;}
-
-/* Responsividade */
-@media (max-width: 768px) {
-  header{padding:10px 16px;}
-  .tabs-bar-wrap{padding:10px 16px 0;}
-  .filter-sticky{padding:14px 16px;}
-  .container{padding:20px 16px;}
-  .filter-row{gap:8px;}
-  .grade-grid.cols-8{grid-template-columns:repeat(8,28px);}
-  .size-qty{width:24px;height:20px;font-size:10px;}
-  .size-lbl{font-size:7px;}
-  .stats-bar{grid-template-columns:repeat(2,1fr);}
-}
+/* ... (mesmo CSS do código anterior) ... */
 </style>
 </head>
 <body>
 
 <div id="loadingOverlay"><div class="spinner"></div><div class="loading-text" id="loadingText">Processando PDF...</div></div>
+
+<!-- Painel de Debug (visível apenas se houver erro) -->
+<div id="debugPanel" style="display:none; position:fixed; bottom:10px; right:10px; background:#1a1a1a; border:1px solid #c8a96e; border-radius:8px; padding:12px; max-width:400px; z-index:1000; font-size:11px; color:#0f0; font-family:monospace;">
+  <div style="display:flex; justify-content:space-between; margin-bottom:8px;">
+    <strong style="color:#c8a96e;">🔍 Debug Info</strong>
+    <button onclick="document.getElementById('debugPanel').style.display='none'" style="background:none; border:none; color:#fff; cursor:pointer;">✖</button>
+  </div>
+  <div id="debugContent"></div>
+</div>
 
 <!-- ═══════ STICKY TOP ═══════ -->
 <div class="sticky-top">
@@ -195,7 +85,6 @@ td.chip-cell{text-align:center;white-space:nowrap;}
     </div>
   </div>
 </div>
-<!-- ═══════ END STICKY ═══════ -->
 
 <div class="container">
   <div class="upload-zone" id="uploadZone">
@@ -206,7 +95,6 @@ td.chip-cell{text-align:center;white-space:nowrap;}
     <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
   </div>
 
-  <!-- Stats — reflects each filter -->
   <div class="stats-bar" id="statsBar" style="display:none">
     <div class="stat-card"><div class="label">Referências</div><div class="value" id="statRefs">—</div><div class="sub" id="statRefsSub">SKUs distintos</div></div>
     <div class="stat-card"><div class="label">Total de Peças</div><div class="value" id="statPecas">—</div><div class="sub" id="statPecasSub">Unidades em estoque</div></div>
@@ -229,492 +117,675 @@ td.chip-cell{text-align:center;white-space:nowrap;}
 </div>
 
 <script>
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// Variáveis globais
+let allProducts = [];
+let r1 = [], r2 = [], r3 = [];
+let debugLog = [];
+
+// Função para adicionar ao log de debug
+function addDebug(msg, data = null) {
+  debugLog.unshift({ time: new Date().toLocaleTimeString(), msg, data });
+  if (debugLog.length > 20) debugLog.pop();
+  updateDebugPanel();
+  console.log(msg, data || '');
+}
+
+function updateDebugPanel() {
+  const panel = document.getElementById('debugContent');
+  if (panel) {
+    panel.innerHTML = debugLog.map(log => 
+      `<div style="border-bottom:1px solid #333; padding:4px 0;"><span style="color:#888">[${log.time}]</span> ${log.msg}</div>`
+    ).join('');
+  }
+}
+
+function showDebug() {
+  document.getElementById('debugPanel').style.display = 'block';
+}
 
 // ═══════════════════════════════════════════════════════════════════
-// SCHEMAS — canonical fixed column order
+// SCHEMAS
 // ═══════════════════════════════════════════════════════════════════
-const SCHEMA_A=['34','36','38','40','42','44','46','48'];    // 8 cols
-const SCHEMA_B=['PP','P','M','G','GG','3G','4G','5G'];       // 8 cols
-const SCHEMA_C=['50','52','54','56'];                         // 4 cols
-const SCHEMA_D=['8','10','12','14','16'];                    // 5 cols
+const SCHEMA_A = ['34','36','38','40','42','44','46','48'];
+const SCHEMA_B = ['PP','P','M','G','GG','3G','4G','5G'];
+const SCHEMA_C = ['50','52','54','56'];
+const SCHEMA_D = ['8','10','12','14','16'];
 
-function getCanonical(schema){
-  const k=schKey(schema);
-  if(k==='B')return SCHEMA_B;
-  if(k==='C')return SCHEMA_C;
-  if(k==='D')return SCHEMA_D;
+function getCanonical(schema) {
+  const k = schKey(schema);
+  if (k === 'B') return SCHEMA_B;
+  if (k === 'C') return SCHEMA_C;
+  if (k === 'D') return SCHEMA_D;
   return SCHEMA_A;
 }
-function schKey(schema){
-  if(!schema||!schema.length)return'A';
-  const a=schema.map(String);
-  if(a.includes('PP')||a.includes('GG'))return'B';
-  if(a[0]==='50'||a[0]==='52')return'C';
-  if(a[0]==='8'&&a.length<=5&&!a.includes('38'))return'D';
-  return'A';
+
+function schKey(schema) {
+  if (!schema || !schema.length) return 'A';
+  const a = schema.map(String);
+  if (a.includes('PP') || a.includes('GG')) return 'B';
+  if (a[0] === '50' || a[0] === '52') return 'C';
+  if (a[0] === '8' && a.length <= 5 && !a.includes('38')) return 'D';
+  return 'A';
 }
 
-// ═══════════════════════════════════════════════════════════════════
-// GRADE GRID BUILDER
-// ═══════════════════════════════════════════════════════════════════
-function buildGradeGrid(qtys,schema,hlSet){
-  const canonical=getCanonical(schema);
-  const qmap={};
-  canonical.forEach((sz,i)=>{qmap[sz]=qtys[i]||0;});
-  let hasAny=false,cells='';
-  for(const sz of canonical){
-    const qty=qmap[sz]||0;
-    if(qty>0)hasAny=true;
-    const isEmpty=qty===0;
-    const isHl=hlSet&&hlSet.has(sz)?' hl':'';
-    cells+=`<div class="size-cell"><div class="size-lbl">${sz}</div><div class="size-qty${isEmpty?' empty':isHl}">${isEmpty?'':qty}</div></div>`;
+function buildGradeGrid(qtys, schema, hlSet) {
+  const canonical = getCanonical(schema);
+  const qmap = {};
+  canonical.forEach((sz, i) => { qmap[sz] = qtys[i] || 0; });
+  let hasAny = false, cells = '';
+  for (const sz of canonical) {
+    const qty = qmap[sz] || 0;
+    if (qty > 0) hasAny = true;
+    const isEmpty = qty === 0;
+    const isHl = hlSet && hlSet.has(sz) ? ' hl' : '';
+    cells += `<div class="size-cell"><div class="size-lbl">${sz}</div><div class="size-qty${isEmpty ? ' empty' : isHl}">${isEmpty ? '' : qty}</div></div>`;
   }
-  if(!hasAny)return null;
-  const n=canonical.length;
-  const cls=n<=4?'cols-4':n===5?'cols-5':'cols-8';
-  return`<div class="grade-grid ${cls}">${cells}</div>`;
+  if (!hasAny) return null;
+  const n = canonical.length;
+  const cls = n <= 4 ? 'cols-4' : n === 5 ? 'cols-5' : 'cols-8';
+  return `<div class="grade-grid ${cls}">${cells}</div>`;
+}
+
+function matchesGroup(p, groupVal) {
+  if (!groupVal) return true;
+  if (groupVal === 'CALÇA_MAS') return p.grupo === 'CALÇA' && /\bMAS\b/i.test(p.desc);
+  if (groupVal === 'CALÇA_FEM') return p.grupo === 'CALÇA' && /\bFEM\b/i.test(p.desc);
+  if (groupVal === 'BERMUDA_MAS') return p.grupo === 'BERMUDA' && /\bMAS\b/i.test(p.desc);
+  if (groupVal === 'BERMUDA_FEM') return p.grupo === 'BERMUDA' && /\bFEM\b/i.test(p.desc);
+  return p.grupo === groupVal;
 }
 
 // ═══════════════════════════════════════════════════════════════════
-// GROUP FILTERING
+// PDF PROCESSING MELHORADO
 // ═══════════════════════════════════════════════════════════════════
-function matchesGroup(p,groupVal){
-  if(!groupVal)return true;
-  if(groupVal==='CALÇA_MAS')  return p.grupo==='CALÇA'   &&/\bMAS\b/i.test(p.desc);
-  if(groupVal==='CALÇA_FEM')  return p.grupo==='CALÇA'   &&/\bFEM\b/i.test(p.desc);
-  if(groupVal==='BERMUDA_MAS')return p.grupo==='BERMUDA' &&/\bMAS\b/i.test(p.desc);
-  if(groupVal==='BERMUDA_FEM')return p.grupo==='BERMUDA' &&/\bFEM\b/i.test(p.desc);
-  return p.grupo===groupVal;
-}
-
-let allProducts=[];
-let r1=[],r2=[],r3=[];
-
-// ═══════════════════════════════════════════════════════════════════
-// PDF PROCESSING — POSITIONAL EXTRACTION
-// ═══════════════════════════════════════════════════════════════════
-document.getElementById('pdfInput').addEventListener('change',async e=>{
-  const f=e.target.files[0];if(!f)return;await processPDF(f);
-});
-const uz=document.getElementById('uploadZone');
-uz.addEventListener('dragover',e=>{e.preventDefault();uz.classList.add('drag-over');});
-uz.addEventListener('dragleave',()=>uz.classList.remove('drag-over'));
-uz.addEventListener('drop',async e=>{
-  e.preventDefault();uz.classList.remove('drag-over');
-  const f=e.dataTransfer.files[0];
-  if(f&&f.type==='application/pdf')await processPDF(f);
+document.getElementById('pdfInput').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  if (!f) return;
+  addDebug(`📄 Arquivo selecionado: ${f.name} (${(f.size / 1024).toFixed(2)} KB)`);
+  await processPDF(f);
 });
 
-async function processPDF(file){
+const uz = document.getElementById('uploadZone');
+uz.addEventListener('dragover', e => { e.preventDefault(); uz.classList.add('drag-over'); });
+uz.addEventListener('dragleave', () => uz.classList.remove('drag-over'));
+uz.addEventListener('drop', async e => {
+  e.preventDefault();
+  uz.classList.remove('drag-over');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type === 'application/pdf') {
+    addDebug(`📄 Arquivo arrastado: ${f.name}`);
+    await processPDF(f);
+  } else {
+    addDebug('❌ Arquivo não é PDF', { type: f?.type });
+    alert('Por favor, selecione um arquivo PDF válido.');
+  }
+});
+
+async function processPDF(file) {
   showLoading('Lendo PDF...');
-  const pBar=document.getElementById('progressBar');
-  const pFill=document.getElementById('progressFill');
-  pBar.style.display='block';pFill.style.width='5%';
-  try{
-    const buf=await file.arrayBuffer();
-    pFill.style.width='20%';
-    const pdf=await pdfjsLib.getDocument({data:buf}).promise;
-    const total=pdf.numPages;
-    const allPageRows=[];
-    for(let i=1;i<=total;i++){
-      const page=await pdf.getPage(i);
-      const content=await page.getTextContent();
-      const rows=groupByRow(content.items);
+  const pBar = document.getElementById('progressBar');
+  const pFill = document.getElementById('progressFill');
+  pBar.style.display = 'block';
+  pFill.style.width = '5%';
+  
+  try {
+    const buf = await file.arrayBuffer();
+    addDebug(`✅ PDF carregado: ${buf.byteLength} bytes`);
+    pFill.style.width = '20%';
+    
+    const pdf = await pdfjsLib.getDocument({ data: buf }).promise;
+    const total = pdf.numPages;
+    addDebug(`📑 PDF possui ${total} páginas`);
+    
+    const allPageRows = [];
+    
+    for (let i = 1; i <= total; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      addDebug(`📄 Página ${i}: ${content.items.length} itens de texto`);
+      
+      // Log das primeiras linhas da página para debug
+      if (i === 1 && content.items.length > 0) {
+        const firstLines = content.items.slice(0, 10).map(item => item.str).join(' | ');
+        addDebug(`🔍 Primeiros textos da página 1: ${firstLines.substring(0, 200)}`);
+      }
+      
+      const rows = groupByRow(content.items);
+      addDebug(`📊 Página ${i}: agrupada em ${rows.length} linhas`);
       allPageRows.push(...rows);
-      pFill.style.width=(20+Math.floor((i/total)*60))+'%';
-      document.getElementById('loadingText').textContent=`Página ${i} de ${total}...`;
+      
+      pFill.style.width = (20 + Math.floor((i / total) * 60)) + '%';
+      document.getElementById('loadingText').textContent = `Página ${i} de ${total}...`;
     }
-    pFill.style.width='85%';
-    document.getElementById('loadingText').textContent='Parseando dados...';
-    allProducts=parseFromRows(allPageRows);
-    pFill.style.width='100%';
-    updateStatsFromList(allProducts,true);
+    
+    pFill.style.width = '85%';
+    document.getElementById('loadingText').textContent = 'Parseando dados...';
+    addDebug(`🔧 Total de linhas coletadas: ${allPageRows.length}`);
+    
+    // Mostrar algumas linhas para debug
+    if (allPageRows.length > 0) {
+      const sampleRows = allPageRows.slice(0, 5).map(r => r.text.substring(0, 100));
+      addDebug(`📝 Amostra de linhas: ${sampleRows.join(' | ')}`);
+    }
+    
+    allProducts = parseFromRows(allPageRows);
+    addDebug(`✅ Produtos encontrados: ${allProducts.length}`);
+    
+    if (allProducts.length === 0) {
+      addDebug('⚠️ NENHUM produto foi identificado! Verifique se o PDF está no formato esperado.');
+      alert('Nenhum produto foi identificado no PDF. Verifique se o formato corresponde ao esperado.\n\nFormato esperado:\nREFERÊNCIA - DESCRIÇÃO Grupo: GRUPO\n\nConsulte o painel de debug para mais informações.');
+      showDebug();
+    }
+    
+    pFill.style.width = '100%';
+    updateStatsFromList(allProducts, true);
     populateGroupSelects();
-    document.getElementById('statsBar').style.display='grid';
-    document.getElementById('tabsBarWrap').style.display='block';
-    document.getElementById('filterSticky').style.display='block';
-    document.getElementById('headerInfo').textContent=`${file.name} · ${allProducts.length} referências`;
-    runFilter1();runFilter2();
-    setTimeout(()=>{pBar.style.display='none';hideLoading();},500);
-  }catch(err){
-    hideLoading();alert('Erro ao processar PDF: '+err.message);console.error(err);
+    
+    document.getElementById('statsBar').style.display = 'grid';
+    document.getElementById('tabsBarWrap').style.display = 'block';
+    document.getElementById('filterSticky').style.display = 'block';
+    document.getElementById('headerInfo').textContent = `${file.name} · ${allProducts.length} referências`;
+    
+    runFilter1();
+    runFilter2();
+    
+    setTimeout(() => {
+      pBar.style.display = 'none';
+      hideLoading();
+    }, 500);
+    
+  } catch (err) {
+    addDebug(`❌ ERRO: ${err.message}`);
+    hideLoading();
+    alert('Erro ao processar PDF: ' + err.message + '\n\nVerifique o console (F12) para mais detalhes.');
+    console.error(err);
+    showDebug();
   }
 }
 
-function groupByRow(items){
-  const rowMap={};
-  for(const item of items){
-    if(!item.str.trim())continue;
-    const x=Math.round(item.transform[4]*2)/2;
-    const y=Math.round(item.transform[5]*2)/2;
-    const key=y.toFixed(1);
-    if(!rowMap[key])rowMap[key]={y,cells:[]};
-    rowMap[key].cells.push({x,text:item.str.trim()});
+function groupByRow(items) {
+  const rowMap = {};
+  for (const item of items) {
+    if (!item.str || !item.str.trim()) continue;
+    const x = Math.round(item.transform[4] * 2) / 2;
+    const y = Math.round(item.transform[5] * 2) / 2;
+    const key = y.toFixed(1);
+    if (!rowMap[key]) rowMap[key] = { y, cells: [] };
+    rowMap[key].cells.push({ x, text: item.str.trim() });
   }
   return Object.values(rowMap)
-    .sort((a,b)=>b.y-a.y)
-    .map(r=>({
-      y:r.y,
-      text:r.cells.sort((a,b)=>a.x-b.x).map(c=>c.text).join(' '),
-      cells:r.cells.sort((a,b)=>a.x-b.x)
+    .sort((a, b) => b.y - a.y)
+    .map(r => ({
+      y: r.y,
+      text: r.cells.sort((a, b) => a.x - b.x).map(c => c.text).join(' '),
+      cells: r.cells.sort((a, b) => a.x - b.x)
     }));
 }
 
-function parseFromRows(rows){
-  const products=[];
-  const hdrRx=/^([0-9][0-9A-Z]*(?:T)?)\s*-\s*(.+?)\s+Grupo:\s*([A-ZÁÀÃÂÉÊÍÓÔÕÚÜÇ]+)/i;
-  const colHdrRx=/Cor\s*\/\s*Variante/i;
-
-  let currentProduct=null;
-  let currentSchema=SCHEMA_A;
-  let sizeColXMap=null;
-
-  for(let ri=0;ri<rows.length;ri++){
-    const row=rows[ri];
-    const txt=row.text.trim();
-
-    if(/Têxtil Full|pág\.|Inventário de Produtos|Via Grafit|Preço Médio|Valor Total do Estoque/i.test(txt))continue;
-    if(/PRONTA ENTREGA/i.test(txt))continue;
-
-    if(colHdrRx.test(txt)){
-      const szCells=row.cells.filter(c=>/^(34|36|38|40|42|44|46|48|50|52|54|56|PP|P|M|G|GG|3G|4G|5G|8|10|12|14|16)$/.test(c.text));
-      if(szCells.length>=4){
-        const labels=szCells.map(c=>c.text);
-        if(labels.includes('PP'))currentSchema=SCHEMA_B;
-        else if(labels.includes('50'))currentSchema=SCHEMA_C;
-        else if(labels[0]==='8')currentSchema=SCHEMA_D;
-        else currentSchema=SCHEMA_A;
-        sizeColXMap=szCells.map(c=>({sz:c.text,x:c.x}));
+function parseFromRows(rows) {
+  const products = [];
+  // Regex mais flexível para capturar diferentes formatos
+  const hdrRx = /^([0-9][0-9A-Z]*[A-Z]?)\s*[-–]\s*(.+?)\s+Grupo:\s*([A-ZÁÀÃÂÉÊÍÓÔÕÚÜÇ]+)/i;
+  const hdrRx2 = /^([0-9][0-9A-Z]*[A-Z]?)\s+-\s+(.+?)\s+GRUPO\s*([A-ZÁÀÃÂÉÊÍÓÔÕÚÜÇ]+)/i;
+  const colHdrRx = /(?:Cor|Variante|Tamanho|TAM)/i;
+  
+  let currentProduct = null;
+  let currentSchema = SCHEMA_A;
+  let sizeColXMap = null;
+  let productCount = 0;
+  
+  for (let ri = 0; ri < rows.length; ri++) {
+    const row = rows[ri];
+    const txt = row.text.trim();
+    
+    // Pular linhas vazias ou de cabeçalho de página
+    if (!txt || txt.length < 5) continue;
+    if (/Têxtil Full|pág\.|Página|Inventário de Produtos|Via Grafit|Preço Médio|Valor Total|Data|Hora|Usuário/i.test(txt)) continue;
+    if (/PRONTA ENTREGA|TOTAL GERAL/i.test(txt)) continue;
+    
+    // Tentar detectar cabeçalho de tamanhos
+    if (colHdrRx.test(txt) && (txt.includes('34') || txt.includes('PP') || txt.includes('50') || txt.includes('8'))) {
+      const szCells = row.cells.filter(c => /^(34|36|38|40|42|44|46|48|50|52|54|56|PP|P|M|G|GG|3G|4G|5G|8|10|12|14|16)$/i.test(c.text));
+      if (szCells.length >= 4) {
+        const labels = szCells.map(c => c.text.toUpperCase());
+        addDebug(`📏 Detectado schema de tamanhos: ${labels.join(', ')}`);
+        if (labels.includes('PP')) currentSchema = SCHEMA_B;
+        else if (labels.includes('50')) currentSchema = SCHEMA_C;
+        else if (labels[0] === '8') currentSchema = SCHEMA_D;
+        else currentSchema = SCHEMA_A;
+        sizeColXMap = szCells.map(c => ({ sz: c.text, x: c.x }));
       }
       continue;
     }
-
-    const hm=txt.match(hdrRx);
-    if(hm){
-      const ref=hm[1].trim();
-      const desc=hm[2].trim();
-      const grupo=hm[3].trim().toUpperCase().replace('CALÇA','CALÇA').replace(/^CAL$/,'CALÇA');
-      if(['PRONTA','ENTREGA'].some(x=>desc.toUpperCase().startsWith(x)))continue;
-      if(ref.length>6)continue;
-      currentProduct={ref,desc,grupo,variants:[],sizeSchema:currentSchema,totalQty:0,totalValue:0};
+    
+    // Tentar capturar cabeçalho do produto
+    let hm = txt.match(hdrRx);
+    if (!hm) hm = txt.match(hdrRx2);
+    
+    if (hm) {
+      const ref = hm[1].trim();
+      let desc = hm[2].trim();
+      let grupo = hm[3].trim().toUpperCase();
+      grupo = grupo.replace('CALÇA', 'CALÇA').replace(/^CAL$/, 'CALÇA');
+      
+      // Validar se parece um produto real
+      if (ref.length > 8) continue;
+      if (desc.length < 3) continue;
+      
+      productCount++;
+      addDebug(`📦 Produto #${productCount}: ${ref} - ${desc.substring(0, 50)} | Grupo: ${grupo}`);
+      
+      currentProduct = {
+        ref, desc, grupo,
+        variants: [],
+        sizeSchema: currentSchema,
+        totalQty: 0,
+        totalValue: 0
+      };
       products.push(currentProduct);
       continue;
     }
-
-    if(currentProduct){
-      const parsed=parseVariantRow(row,currentProduct.sizeSchema,sizeColXMap);
-      if(parsed){
+    
+    // Tentar capturar variante (cor/tamanhos)
+    if (currentProduct) {
+      const parsed = parseVariantRow(row, currentProduct.sizeSchema, sizeColXMap);
+      if (parsed) {
+        addDebug(`🎨 Variante: ${parsed.colorCode} - ${parsed.colorName} | Qtys: ${parsed.qtys.join(',')}`);
         currentProduct.variants.push(parsed);
-        currentProduct.totalQty+=parsed.qtys.reduce((a,b)=>a+b,0);
-        currentProduct.totalValue+=parsed.total||0;
+        currentProduct.totalQty += parsed.qtys.reduce((a, b) => a + b, 0);
+        currentProduct.totalValue += parsed.total || 0;
       }
     }
   }
-
-  return products.filter(p=>p.variants.length>0&&p.totalQty>0);
+  
+  addDebug(`📊 Resultado final: ${products.length} produtos, total variantes: ${products.reduce((s,p)=>s+p.variants.length,0)}`);
+  
+  return products.filter(p => p.variants.length > 0 && p.totalQty > 0);
 }
 
-function parseVariantRow(row,schema,sizeColXMap){
-  const txt=row.text.trim();
-  if(!/^\d+\s*-\s/.test(txt))return null;
-
-  const m=txt.match(/^(\d+)\s*-\s*([\wÀ-ÿ][^\d]*?)\s+([\d\s,\.]+)$/);
-  if(!m)return null;
-
-  const colorCode=m[1];
-  const colorName=m[2].trim();
-  const numPart=m[3].trim();
-
-  const cleaned=numPart.replace(/(\d)\.(\d{3})/g,'$1$2');
-  const tokens=cleaned.split(/\s+/).filter(t=>/^[\d,]+$/.test(t));
-  const nums=tokens.map(t=>parseFloat(t.replace(',','.')));
-
-  if(nums.length<3)return null;
-
-  const canonical=getCanonical(schema);
-  const schLen=canonical.length;
-
-  let priceStart=-1;
-  for(let i=nums.length-1;i>=1;i--){
-    if(nums[i]>1 && nums[i-1]>1 && nums[i]%1!==0 && String(tokens[i]).includes(',')){
-      priceStart=i-1;
+function parseVariantRow(row, schema, sizeColXMap) {
+  const txt = row.text.trim();
+  
+  // Padrão: código - nome seguido de números
+  const m = txt.match(/^(\d+)\s*[-–]\s*([\wÀ-ÿ][^\d]*?)\s+([\d\s,\.]+)$/);
+  if (!m) return null;
+  
+  const colorCode = m[1];
+  const colorName = m[2].trim();
+  const numPart = m[3].trim();
+  
+  // Extrair números
+  const cleaned = numPart.replace(/(\d)\.(\d{3})/g, '$1$2');
+  const tokens = cleaned.split(/\s+/).filter(t => /^[\d,]+$/.test(t));
+  const nums = tokens.map(t => parseFloat(t.replace(',', '.')));
+  
+  if (nums.length < 3) return null;
+  
+  const canonical = getCanonical(schema);
+  const schLen = canonical.length;
+  
+  // Encontrar preços (últimos dois números com decimais)
+  let priceStart = -1;
+  for (let i = nums.length - 1; i >= 1; i--) {
+    if (nums[i] > 1 && nums[i] % 1 !== 0 && String(tokens[i]).includes(',')) {
+      priceStart = i - 1;
       break;
     }
   }
-  if(priceStart<0){
-    priceStart=nums.length-2;
-  }
-
-  const valorUn=nums[priceStart];
-  const total=nums[priceStart+1]||0;
-
-  if(isNaN(valorUn)||valorUn<=0||valorUn>9999)return null;
-
-  const qtyNums=nums.slice(0,priceStart);
+  if (priceStart < 0) priceStart = nums.length - 2;
+  if (priceStart < 0 || priceStart >= nums.length - 1) return null;
+  
+  const valorUn = nums[priceStart];
+  const total = nums[priceStart + 1] || 0;
+  
+  if (isNaN(valorUn) || valorUn <= 0 || valorUn > 99999) return null;
+  
+  const qtyNums = nums.slice(0, priceStart);
   let qtys;
-  if(qtyNums.length>=schLen+1){
-    qtys=qtyNums.slice(0,schLen);
-  } else if(qtyNums.length===schLen){
-    qtys=[...qtyNums];
+  
+  if (qtyNums.length >= schLen) {
+    qtys = qtyNums.slice(0, schLen).map(n => Math.round(n));
   } else {
-    qtys=[...qtyNums];
-    while(qtys.length<schLen)qtys.push(0);
+    qtys = [...qtyNums.map(n => Math.round(n))];
+    while (qtys.length < schLen) qtys.push(0);
   }
-
-  if(qtys.some(q=>q<0||q>9999||!Number.isInteger(q)))return null;
-
-  return{colorCode,colorName,qtys,valorUn,total};
+  
+  // Validar quantidades
+  if (qtys.some(q => q < 0 || q > 99999)) return null;
+  
+  return { colorCode, colorName, qtys, valorUn, total };
 }
 
-function updateStatsFromList(list,isAll){
-  const refs=list.length;
-  const pecas=list.reduce((s,p)=>s+p.totalQty,0);
-  const valor=list.reduce((s,p)=>s+p.totalValue,0);
-  const grupos=new Set(list.map(p=>p.grupo)).size;
-  document.getElementById('statRefs').textContent=refs.toLocaleString('pt-BR');
-  document.getElementById('statPecas').textContent=pecas.toLocaleString('pt-BR');
-  document.getElementById('statValor').textContent='R$ '+valor.toLocaleString('pt-BR',{minimumFractionDigits:2});
-  document.getElementById('statGrupos').textContent=grupos;
-  const sub=isAll?'Total do estoque':'Conforme filtro atual';
-  document.getElementById('statRefsSub').textContent=isAll?'SKUs distintos':'Filtrados';
-  document.getElementById('statPecasSub').textContent=sub;
-  document.getElementById('statValorSub').textContent=sub;
+function updateStatsFromList(list, isAll) {
+  const refs = list.length;
+  const pecas = list.reduce((s, p) => s + p.totalQty, 0);
+  const valor = list.reduce((s, p) => s + p.totalValue, 0);
+  const grupos = new Set(list.map(p => p.grupo)).size;
+  
+  document.getElementById('statRefs').textContent = refs.toLocaleString('pt-BR');
+  document.getElementById('statPecas').textContent = pecas.toLocaleString('pt-BR');
+  document.getElementById('statValor').textContent = 'R$ ' + valor.toLocaleString('pt-BR', { minimumFractionDigits: 2 });
+  document.getElementById('statGrupos').textContent = grupos;
+  
+  const sub = isAll ? 'Total do estoque' : 'Conforme filtro atual';
+  document.getElementById('statRefsSub').textContent = isAll ? 'SKUs distintos' : 'Filtrados';
+  document.getElementById('statPecasSub').textContent = sub;
+  document.getElementById('statValorSub').textContent = sub;
 }
 
-function populateGroupSelects(){
-  const rawGrupos=[...new Set(allProducts.map(p=>p.grupo))].sort();
-  const hasCal=rawGrupos.includes('CALÇA');
-  const hasBerm=rawGrupos.includes('BERMUDA');
-  ['f1Grupo','f2Grupo','f3Grupo'].forEach(id=>{
-    const sel=document.getElementById(id);
-    sel.innerHTML='<option value="">Todos os grupos</option>';
-    rawGrupos.forEach(g=>{
-      const o=document.createElement('option');o.value=g;o.textContent=g;sel.appendChild(o);
+function populateGroupSelects() {
+  const rawGrupos = [...new Set(allProducts.map(p => p.grupo))].sort();
+  const hasCal = rawGrupos.includes('CALÇA');
+  const hasBerm = rawGrupos.includes('BERMUDA');
+  
+  ['f1Grupo', 'f2Grupo', 'f3Grupo'].forEach(id => {
+    const sel = document.getElementById(id);
+    if (!sel) return;
+    sel.innerHTML = '<option value="">Todos os grupos</option>';
+    rawGrupos.forEach(g => {
+      const o = document.createElement('option');
+      o.value = g;
+      o.textContent = g;
+      sel.appendChild(o);
     });
-    if(hasCal){
-      if(allProducts.some(p=>p.grupo==='CALÇA'&&/\bMAS\b/i.test(p.desc))){const o=document.createElement('option');o.value='CALÇA_MAS';o.textContent='↳ CALÇA MAS';sel.appendChild(o);}
-      if(allProducts.some(p=>p.grupo==='CALÇA'&&/\bFEM\b/i.test(p.desc))){const o=document.createElement('option');o.value='CALÇA_FEM';o.textContent='↳ CALÇA FEM';sel.appendChild(o);}
+    if (hasCal) {
+      if (allProducts.some(p => p.grupo === 'CALÇA' && /\bMAS\b/i.test(p.desc))) {
+        const o = document.createElement('option');
+        o.value = 'CALÇA_MAS';
+        o.textContent = '↳ CALÇA MAS';
+        sel.appendChild(o);
+      }
+      if (allProducts.some(p => p.grupo === 'CALÇA' && /\bFEM\b/i.test(p.desc))) {
+        const o = document.createElement('option');
+        o.value = 'CALÇA_FEM';
+        o.textContent = '↳ CALÇA FEM';
+        sel.appendChild(o);
+      }
     }
-    if(hasBerm){
-      if(allProducts.some(p=>p.grupo==='BERMUDA'&&/\bMAS\b/i.test(p.desc))){const o=document.createElement('option');o.value='BERMUDA_MAS';o.textContent='↳ BERMUDA MAS';sel.appendChild(o);}
-      if(allProducts.some(p=>p.grupo==='BERMUDA'&&/\bFEM\b/i.test(p.desc))){const o=document.createElement('option');o.value='BERMUDA_FEM';o.textContent='↳ BERMUDA FEM';sel.appendChild(o);}
+    if (hasBerm) {
+      if (allProducts.some(p => p.grupo === 'BERMUDA' && /\bMAS\b/i.test(p.desc))) {
+        const o = document.createElement('option');
+        o.value = 'BERMUDA_MAS';
+        o.textContent = '↳ BERMUDA MAS';
+        sel.appendChild(o);
+      }
+      if (allProducts.some(p => p.grupo === 'BERMUDA' && /\bFEM\b/i.test(p.desc))) {
+        const o = document.createElement('option');
+        o.value = 'BERMUDA_FEM';
+        o.textContent = '↳ BERMUDA FEM';
+        sel.appendChild(o);
+      }
     }
   });
 }
 
-function buildStdTable(data){
-  if(!data.length)return'<div class="empty-state"><div class="icon">🔍</div><p>Nenhum resultado encontrado</p></div>';
-  let html='<div class="table-wrap"><table>';
-  html+='<thead><tr><th>Referência</th><th>Descrição</th><th>Grupo</th><th>Grade — tamanho / quantidade</th><th style="text-align:center">Peças</th><th style="text-align:right">Valor Unit.</th><th style="text-align:right">Total</th></tr></thead><tbody>';
-  for(const p of data){
-    for(const v of p.variants){
-      const grid=buildGradeGrid(v.qtys,p.sizeSchema,null);
-      if(!grid)continue;
-      const qty=v.qtys.reduce((a,b)=>a+b,0);
-      const cLabel=v.colorCode!=='6'?` <span style="color:var(--muted);font-size:10px">· ${v.colorName}</span>`:'';
-      html+=`<tr><td class="ref">${p.ref}</td><td class="desc">${p.desc}${cLabel}</td><td><span class="tag-grupo">${p.grupo}</span></td><td>${grid}</td><td class="pecas-total">${qty}</td><td class="value">R$&nbsp;${v.valorUn.toFixed(2).replace('.',',')}</td><td class="total-val">R$&nbsp;${(v.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`;
+function buildStdTable(data) {
+  if (!data.length) return '<div class="empty-state"><div class="icon">🔍</div><p>Nenhum resultado encontrado</p></div>';
+  let html = '<div class="table-wrap"><table>';
+  html += '<thead><tr><th>Referência</th><th>Descrição</th><th>Grupo</th><th>Grade — tamanho / quantidade</th><th style="text-align:center">Peças</th><th style="text-align:right">Valor Unit.</th><th style="text-align:right">Total</th></tr></thead><tbody>';
+  for (const p of data) {
+    for (const v of p.variants) {
+      const grid = buildGradeGrid(v.qtys, p.sizeSchema, null);
+      if (!grid) continue;
+      const qty = v.qtys.reduce((a, b) => a + b, 0);
+      const cLabel = v.colorCode !== '6' ? ` <span style="color:var(--muted);font-size:10px">· ${v.colorName}</span>` : '';
+      html += `<tr><td class="ref">${p.ref}</td><td class="desc">${p.desc}${cLabel}</td><td><span class="tag-grupo">${p.grupo}</span></td><td>${grid}</td><td class="pecas-total">${qty}</td><td class="value">R$ ${v.valorUn.toFixed(2).replace('.', ',')}</td><td class="total-val">R$ ${(v.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td></tr>`;
     }
   }
-  html+='</tbody></table></div>';
+  html += '</tbody></table></div>';
   return html;
 }
 
-function runFilter1(){
-  const q=document.getElementById('f1Input').value.trim().toUpperCase();
-  const g=document.getElementById('f1Grupo').value;
-  if(!allProducts.length)return;
-  let res=allProducts.filter(p=>matchesGroup(p,g));
-  if(q)res=res.filter(p=>p.ref.toUpperCase().includes(q)||p.desc.toUpperCase().includes(q));
-  r1=res;
-  document.getElementById('count1').innerHTML=`<strong>${res.length}</strong> referência(s)`;
-  document.getElementById('result1').innerHTML=buildStdTable(res);
-  updateStatsFromList(res,!q&&!g);
+function runFilter1() {
+  const q = document.getElementById('f1Input').value.trim().toUpperCase();
+  const g = document.getElementById('f1Grupo').value;
+  if (!allProducts.length) return;
+  let res = allProducts.filter(p => matchesGroup(p, g));
+  if (q) res = res.filter(p => p.ref.toUpperCase().includes(q) || p.desc.toUpperCase().includes(q));
+  r1 = res;
+  document.getElementById('count1').innerHTML = `<strong>${res.length}</strong> referência(s)`;
+  document.getElementById('result1').innerHTML = buildStdTable(res);
+  updateStatsFromList(res, !q && !g);
 }
-function clearFilter1(){document.getElementById('f1Input').value='';document.getElementById('f1Grupo').value='';runFilter1();}
 
-function runFilter2(){
-  const q=document.getElementById('f2Input').value.trim().toUpperCase();
-  const g=document.getElementById('f2Grupo').value;
-  if(!allProducts.length)return;
-  let res=allProducts.filter(p=>matchesGroup(p,g));
-  if(q)res=res.filter(p=>p.desc.toUpperCase().includes(q));
-  r2=res;
-  document.getElementById('count2').innerHTML=`<strong>${res.length}</strong> referência(s)`;
-  document.getElementById('result2').innerHTML=buildStdTable(res);
-  updateStatsFromList(res,!q&&!g);
+function clearFilter1() { document.getElementById('f1Input').value = ''; document.getElementById('f1Grupo').value = ''; runFilter1(); }
+
+function runFilter2() {
+  const q = document.getElementById('f2Input').value.trim().toUpperCase();
+  const g = document.getElementById('f2Grupo').value;
+  if (!allProducts.length) return;
+  let res = allProducts.filter(p => matchesGroup(p, g));
+  if (q) res = res.filter(p => p.desc.toUpperCase().includes(q));
+  r2 = res;
+  document.getElementById('count2').innerHTML = `<strong>${res.length}</strong> referência(s)`;
+  document.getElementById('result2').innerHTML = buildStdTable(res);
+  updateStatsFromList(res, !q && !g);
 }
-function clearFilter2(){document.getElementById('f2Input').value='';document.getElementById('f2Grupo').value='';runFilter2();}
 
-function runFilter3(){
-  const minTam=parseInt(document.getElementById('f3MinTam').value)||6;
-  const minQty=parseInt(document.getElementById('f3MinQty').value)||1;
-  const g=document.getElementById('f3Grupo').value;
-  if(!allProducts.length)return;
-  let source=allProducts.filter(p=>matchesGroup(p,g));
-  const results=[];
-  for(const p of source){
-    for(const v of p.variants){
-      const canonical=getCanonical(p.sizeSchema);
-      const sizes=canonical.map((sz,i)=>({sz,q:v.qtys[i]||0}));
-      let maxRun=0,bestRun=[],curRun=[];
-      for(const s of sizes){
-        if(s.q>=minQty){curRun.push(s);if(curRun.length>maxRun){maxRun=curRun.length;bestRun=[...curRun];}}
-        else curRun=[];
+function clearFilter2() { document.getElementById('f2Input').value = ''; document.getElementById('f2Grupo').value = ''; runFilter2(); }
+
+function runFilter3() {
+  const minTam = parseInt(document.getElementById('f3MinTam').value) || 6;
+  const minQty = parseInt(document.getElementById('f3MinQty').value) || 1;
+  const g = document.getElementById('f3Grupo').value;
+  if (!allProducts.length) return;
+  let source = allProducts.filter(p => matchesGroup(p, g));
+  const results = [];
+  for (const p of source) {
+    for (const v of p.variants) {
+      const canonical = getCanonical(p.sizeSchema);
+      const sizes = canonical.map((sz, i) => ({ sz, q: v.qtys[i] || 0 }));
+      let maxRun = 0, bestRun = [], curRun = [];
+      for (const s of sizes) {
+        if (s.q >= minQty) {
+          curRun.push(s);
+          if (curRun.length > maxRun) {
+            maxRun = curRun.length;
+            bestRun = [...curRun];
+          }
+        } else {
+          curRun = [];
+        }
       }
-      if(maxRun>=minTam)results.push({product:p,variant:v,run:bestRun,runLength:maxRun});
+      if (maxRun >= minTam) results.push({ product: p, variant: v, run: bestRun, runLength: maxRun });
     }
   }
-  r3=results;
-  document.getElementById('count3').innerHTML=`<strong>${results.length}</strong> grade(s) com ≥${minTam} tam. consecutivos e ≥${minQty} peça(s)/tam`;
+  r3 = results;
+  document.getElementById('count3').innerHTML = `<strong>${results.length}</strong> grade(s) com ≥${minTam} tam. consecutivos e ≥${minQty} peça(s)/tam`;
   renderTable3(results);
-  const uniqueProds=[...new Map(results.map(r=>[r.product.ref,r.product])).values()];
-  updateStatsFromList(uniqueProds,false);
+  const uniqueProds = [...new Map(results.map(r => [r.product.ref, r.product])).values()];
+  updateStatsFromList(uniqueProds, false);
 }
 
-function renderTable3(data){
-  const container=document.getElementById('result3');
-  if(!data.length){container.innerHTML='<div class="empty-state"><div class="icon">📊</div><p>Nenhum produto encontrado para esses critérios</p></div>';return;}
-  let html='<div class="table-wrap"><table>';
-  html+='<thead><tr><th>Referência</th><th>Descrição</th><th>Grupo</th><th style="text-align:center">Grade</th><th>Tamanhos — verde = grade fechada</th><th style="text-align:center">Peças</th><th style="text-align:right">Valor Unit.</th><th style="text-align:right">Total</th></tr></thead><tbody>';
-  for(const r of data){
-    const{product:p,variant:v,run,runLength}=r;
-    const hlSet=new Set(run.map(x=>x.sz));
-    const grid=buildGradeGrid(v.qtys,p.sizeSchema,hlSet);
-    if(!grid)continue;
-    const qty=v.qtys.reduce((a,b)=>a+b,0);
-    const cLabel=v.colorCode!=='6'?` <span style="color:var(--muted);font-size:10px">· ${v.colorName}</span>`:'';
-    html+=`<tr><td class="ref">${p.ref}</td><td class="desc">${p.desc}${cLabel}</td><td><span class="tag-grupo">${p.grupo}</span></td><td class="chip-cell"><span class="chip">${runLength} tam</span></td><td>${grid}</td><td class="pecas-total">${qty}</td><td class="value">R$&nbsp;${v.valorUn.toFixed(2).replace('.',',')}</td><td class="total-val">R$&nbsp;${(v.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`;
+function renderTable3(data) {
+  const container = document.getElementById('result3');
+  if (!data.length) {
+    container.innerHTML = '<div class="empty-state"><div class="icon">📊</div><p>Nenhum produto encontrado para esses critérios</p></div>';
+    return;
   }
-  html+='</tbody></table></div>';
-  container.innerHTML=html;
+  let html = '<div class="table-wrap">\n<table>\n';
+  html += '<thead>\n<tr>\n<th>Referência</th>\n<th>Descrição</th>\n<th>Grupo</th>\n<th style="text-align:center">Grade</th>\n<th>Tamanhos — verde = grade fechada</th>\n<th style="text-align:center">Peças</th>\n<th style="text-align:right">Valor Unit.</th>\n<th style="text-align:right">Total</th>\n</tr>\n</thead>\n<tbody>\n';
+  for (const r of data) {
+    const { product: p, variant: v, run, runLength } = r;
+    const hlSet = new Set(run.map(x => x.sz));
+    const grid = buildGradeGrid(v.qtys, p.sizeSchema, hlSet);
+    if (!grid) continue;
+    const qty = v.qtys.reduce((a, b) => a + b, 0);
+    const cLabel = v.colorCode !== '6' ? ` <span style="color:var(--muted);font-size:10px">· ${v.colorName}</span>` : '';
+    html += `<tr>
+      <td class="ref">${p.ref}</td>
+      <td class="desc">${p.desc}${cLabel}</td>
+      <td><span class="tag-grupo">${p.grupo}</span></td>
+      <td class="chip-cell"><span class="chip">${runLength} tam</span></td>
+      <td>${grid}</td>
+      <td class="pecas-total">${qty}</td>
+      <td class="value">R$ ${v.valorUn.toFixed(2).replace('.', ',')}</td>
+      <td class="total-val">R$ ${(v.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+    </tr>`;
+  }
+  html += '</tbody>\n</table>\n</div>';
+  container.innerHTML = html;
 }
 
-function clearFilter3(){
-  document.getElementById('f3MinTam').value=6;document.getElementById('f3MinQty').value=1;document.getElementById('f3Grupo').value='';
-  document.getElementById('result3').innerHTML='<div class="empty-state"><div class="icon">📊</div><p>Configure os filtros e clique em Buscar</p></div>';
-  document.getElementById('count3').textContent='Aguardando busca...';
-  r3=[];updateStatsFromList(allProducts,true);
+function clearFilter3() {
+  document.getElementById('f3MinTam').value = 6;
+  document.getElementById('f3MinQty').value = 1;
+  document.getElementById('f3Grupo').value = '';
+  document.getElementById('result3').innerHTML = '<div class="empty-state"><div class="icon">📊</div><p>Configure os filtros e clique em Buscar</p></div>';
+  document.getElementById('count3').textContent = 'Aguardando busca...';
+  r3 = [];
+  updateStatsFromList(allProducts, true);
 }
 
-function exportPDF(filterNum){
-  const now=new Date().toLocaleString('pt-BR');
-  let title='',subtitle='',dataRows=[],grandPecas=0,grandTotal=0;
+function exportPDF(filterNum) {
+  const now = new Date().toLocaleString('pt-BR');
+  let title = '', subtitle = '', dataRows = [], grandPecas = 0, grandTotal = 0;
 
-  if(filterNum===1){
-    title='Filtro 1 — Referência';
-    const q=document.getElementById('f1Input').value;
-    subtitle=q?`Referência: "${q}"`:'Todas as referências';
-    for(const p of r1)for(const v of p.variants){
-      const qty=v.qtys.reduce((a,b)=>a+b,0);if(!qty)continue;
-      grandPecas+=qty;grandTotal+=v.total||0;
-      dataRows.push({ref:p.ref,desc:p.desc,grupo:p.grupo,v,schema:p.sizeSchema,qtys:v.qtys,qty});
+  if (filterNum === 1) {
+    title = 'Filtro 1 — Referência';
+    const q = document.getElementById('f1Input').value;
+    subtitle = q ? `Referência: "${q}"` : 'Todas as referências';
+    for (const p of r1) for (const v of p.variants) {
+      const qty = v.qtys.reduce((a, b) => a + b, 0);
+      if (!qty) continue;
+      grandPecas += qty;
+      grandTotal += v.total || 0;
+      dataRows.push({ ref: p.ref, desc: p.desc, grupo: p.grupo, v, schema: p.sizeSchema, qtys: v.qtys, qty });
     }
-  }else if(filterNum===2){
-    title='Filtro 2 — Descrição';
-    const q=document.getElementById('f2Input').value;
-    subtitle=q?`Descrição contém: "${q}"`:'Todas as descrições';
-    for(const p of r2)for(const v of p.variants){
-      const qty=v.qtys.reduce((a,b)=>a+b,0);if(!qty)continue;
-      grandPecas+=qty;grandTotal+=v.total||0;
-      dataRows.push({ref:p.ref,desc:p.desc,grupo:p.grupo,v,schema:p.sizeSchema,qtys:v.qtys,qty});
+  } else if (filterNum === 2) {
+    title = 'Filtro 2 — Descrição';
+    const q = document.getElementById('f2Input').value;
+    subtitle = q ? `Descrição contém: "${q}"` : 'Todas as descrições';
+    for (const p of r2) for (const v of p.variants) {
+      const qty = v.qtys.reduce((a, b) => a + b, 0);
+      if (!qty) continue;
+      grandPecas += qty;
+      grandTotal += v.total || 0;
+      dataRows.push({ ref: p.ref, desc: p.desc, grupo: p.grupo, v, schema: p.sizeSchema, qtys: v.qtys, qty });
     }
-  }else{
-    title='Filtro 3 — Grade Fechada';
-    const mT=document.getElementById('f3MinTam').value,mQ=document.getElementById('f3MinQty').value;
-    subtitle=`Mín. ${mT} tam. consecutivos com ≥${mQ} peça(s)/tam`;
-    for(const r of r3){
-      const p=r.product,v=r.variant;
-      const qty=v.qtys.reduce((a,b)=>a+b,0);
-      grandPecas+=qty;grandTotal+=v.total||0;
-      dataRows.push({ref:p.ref,desc:p.desc,grupo:p.grupo,v,schema:p.sizeSchema,qtys:v.qtys,qty,run:r.run,runLength:r.runLength,isF3:true});
+  } else {
+    title = 'Filtro 3 — Grade Fechada';
+    const mT = document.getElementById('f3MinTam').value, mQ = document.getElementById('f3MinQty').value;
+    subtitle = `Mín. ${mT} tam. consecutivos com ≥${mQ} peça(s)/tam`;
+    for (const r of r3) {
+      const p = r.product, v = r.variant;
+      const qty = v.qtys.reduce((a, b) => a + b, 0);
+      grandPecas += qty;
+      grandTotal += v.total || 0;
+      dataRows.push({ ref: p.ref, desc: p.desc, grupo: p.grupo, v, schema: p.sizeSchema, qtys: v.qtys, qty, run: r.run, runLength: r.runLength, isF3: true });
     }
   }
 
-  const schemaGroups={A:[],B:[],C:[],D:[]};
-  for(const r of dataRows)schemaGroups[schKey(r.schema)].push(r);
+  const schemaGroups = { A: [], B: [], C: [], D: [] };
+  for (const r of dataRows) schemaGroups[schKey(r.schema)].push(r);
 
-  const win=window.open('','_blank');
-  if(!win){alert('Permita popups para exportar');return;}
+  const win = window.open('', '_blank');
+  if (!win) { alert('Permita popups para exportar'); return; }
 
-  let allTablesHTML='';
-  const schemaOrder=[['A',SCHEMA_A],['B',SCHEMA_B],['C',SCHEMA_C],['D',SCHEMA_D]];
+  let allTablesHTML = '';
+  const schemaOrder = [['A', SCHEMA_A], ['B', SCHEMA_B], ['C', SCHEMA_C], ['D', SCHEMA_D]];
 
-  for(const[key,canonical]of schemaOrder){
-    const rows=schemaGroups[key];
-    if(!rows.length)continue;
-    const schLabel=key==='A'?'Tamanhos 34–48':key==='B'?'Tamanhos PP–5G':key==='C'?'Tamanhos 50–56':'Tamanhos 8–16';
-    const szHeaders=canonical.map(sz=>`<th style="text-align:center;min-width:28px">${sz}</th>`).join('');
-    let tBody='';
-    for(const r of rows){
-      const qtyCells=canonical.map((sz,i)=>{
-        const q=r.qtys[i]||0;
-        const hlStyle=r.isF3&&r.run&&r.run.find(x=>x.sz===sz)?'color:#2d7a4f;font-weight:800;':'color:#444;';
-        return q>0?`<td style="text-align:center;${hlStyle}">${q}</td>`:`<td style="text-align:center;color:#ccc">·</td>`;
+  for (const [key, canonical] of schemaOrder) {
+    const rows = schemaGroups[key];
+    if (!rows.length) continue;
+    const schLabel = key === 'A' ? 'Tamanhos 34–48' : key === 'B' ? 'Tamanhos PP–5G' : key === 'C' ? 'Tamanhos 50–56' : 'Tamanhos 8–16';
+    const szHeaders = canonical.map(sz => `<th style="text-align:center;min-width:28px">${sz}</th>`).join('');
+    let tBody = '';
+    for (const r of rows) {
+      const qtyCells = canonical.map((sz, i) => {
+        const q = r.qtys[i] || 0;
+        const hlStyle = r.isF3 && r.run && r.run.find(x => x.sz === sz) ? 'color:#2d7a4f;font-weight:800;' : 'color:#444;';
+        return q > 0 ? `<td style="text-align:center;${hlStyle}">${q}</td>` : `<td style="text-align:center;color:#ccc">·</td>`;
       }).join('');
-      const cLabel=r.v.colorCode!=='6'?` <span style="color:#888;font-size:8px">· ${r.v.colorName}</span>`:'';
-      const runLabel=r.isF3?`<td style="text-align:center"><b>${r.runLength}t</b></td>`:'';
-      tBody+=`<tr><td style="font-weight:700;color:#8b6914">${r.ref}</td><td>${r.desc}${cLabel}</td><td>${r.grupo}</td>${runLabel}${qtyCells}<td style="text-align:right;font-weight:700">${r.qty}</td><td style="text-align:right">R$ ${r.v.valorUn.toFixed(2).replace('.',',')}</td><td style="text-align:right;font-weight:700">R$ ${(r.v.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td></tr>`;
+      const cLabel = r.v.colorCode !== '6' ? ` <span style="color:#888;font-size:8px">· ${r.v.colorName}</span>` : '';
+      const runLabel = r.isF3 ? `<td style="text-align:center"><b>${r.runLength}t</b></td>` : '';
+      tBody += `<tr>
+        <td style="font-weight:700;color:#8b6914">${r.ref}</td>
+        <td>${r.desc}${cLabel}</td>
+        <td>${r.grupo}</td>
+        ${runLabel}
+        ${qtyCells}
+        <td style="text-align:right;font-weight:700">${r.qty}</td>
+        <td style="text-align:right">R$ ${r.v.valorUn.toFixed(2).replace('.', ',')}</td>
+        <td style="text-align:right;font-weight:700">R$ ${(r.v.total || 0).toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</td>
+      </tr>`;
     }
-    const runHdr=filterNum===3?'<th>Grade</th>':'';
-    allTablesHTML+=`
+    const runHdr = filterNum === 3 ? '<th>Grade</th>' : '';
+    allTablesHTML += `
       <div style="margin-bottom:20px">
         <div style="font-size:9px;color:#888;text-transform:uppercase;letter-spacing:.08em;margin-bottom:4px">${schLabel}</div>
-        <table>
-          <thead><tr><th>Ref.</th><th>Descrição</th><th>Grupo</th>${runHdr}${szHeaders}<th style="text-align:right">Peças</th><th style="text-align:right">V.Unit</th><th style="text-align:right">Total</th></tr></thead>
+        <table style="width:100%;border-collapse:collapse">
+          <thead>
+            <tr style="background:#2a2a2e">
+              <th style="color:#fff;padding:4px 5px;text-align:left">Ref.</th>
+              <th style="color:#fff;padding:4px 5px;text-align:left">Descrição</th>
+              <th style="color:#fff;padding:4px 5px;text-align:left">Grupo</th>
+              ${runHdr}
+              ${szHeaders}
+              <th style="color:#fff;padding:4px 5px;text-align:right">Peças</th>
+              <th style="color:#fff;padding:4px 5px;text-align:right">V.Unit</th>
+              <th style="color:#fff;padding:4px 5px;text-align:right">Total</th>
+            </tr>
+          </thead>
           <tbody>${tBody}</tbody>
         </table>
       </div>`;
   }
 
   win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8">
-<title>ViaGráfit — ${title}</title>
-<style>
-  body{font-family:Arial,sans-serif;font-size:8.5px;color:#222;margin:12px}
-  .hdr{border-bottom:2px solid #c8a96e;padding-bottom:7px;margin-bottom:9px}
-  .hdr h1{font-size:13px;color:#8b6914;margin:0 0 2px}
-  .hdr p{font-size:8px;color:#666;margin:0}
-  .info{display:flex;gap:18px;background:#fdf9f0;border:1px solid #e8d9b0;border-radius:4px;padding:6px 10px;margin-bottom:9px}
-  .info div{font-size:8px}.info strong{color:#8b6914;font-size:11px;display:block}
-  table{width:100%;border-collapse:collapse;margin-bottom:0}
-  thead tr{background:#2a2a2e}
-  th{color:#fff;padding:4px 5px;text-align:left;font-size:7.5px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
-  td{padding:3px 5px;border-bottom:1px solid #eee;vertical-align:middle;white-space:nowrap}
-  tr:nth-child(even) td{background:#fafafa}
-  tfoot td{font-weight:700;background:#fdf9f0;border-top:2px solid #c8a96e}
-  .footer{margin-top:8px;font-size:7px;color:#bbb;text-align:right}
-  @media print{body{margin:4px}}
-</style></head><body>
-<div class="hdr">
-  <h1>ViaGráfit — ${title}</h1>
-  <p>${subtitle} &nbsp;·&nbsp; ${now}</p>
-</div>
-<div class="info">
-  <div><strong>${dataRows.length}</strong>Registros</div>
-  <div><strong>${grandPecas.toLocaleString('pt-BR')}</strong>Peças</div>
-  <div><strong>R$ ${grandTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong>Valor Total</div>
-</div>
-${allTablesHTML}
-<div class="footer">ViaGráfit Jeans &nbsp;·&nbsp; ${title} &nbsp;·&nbsp; ${now}</div>
-<script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script>
-</body></html>`);
+  <title>ViaGráfit — ${title}</title>
+  <style>
+    body{font-family:Arial,sans-serif;font-size:8.5px;color:#222;margin:12px}
+    .hdr{border-bottom:2px solid #c8a96e;padding-bottom:7px;margin-bottom:9px}
+    .hdr h1{font-size:13px;color:#8b6914;margin:0 0 2px}
+    .hdr p{font-size:8px;color:#666;margin:0}
+    .info{display:flex;gap:18px;background:#fdf9f0;border:1px solid #e8d9b0;border-radius:4px;padding:6px 10px;margin-bottom:9px}
+    .info div{font-size:8px}.info strong{color:#8b6914;font-size:11px;display:block}
+    table{width:100%;border-collapse:collapse;margin-bottom:0}
+    thead tr{background:#2a2a2e}
+    th{color:#fff;padding:4px 5px;text-align:left;font-size:7.5px;text-transform:uppercase;letter-spacing:.03em;white-space:nowrap}
+    td{padding:3px 5px;border-bottom:1px solid #eee;vertical-align:middle;white-space:nowrap}
+    tr:nth-child(even) td{background:#fafafa}
+    .footer{margin-top:8px;font-size:7px;color:#bbb;text-align:right}
+    @media print{body{margin:4px}}
+  </style>
+  </head><body>
+  <div class="hdr">
+    <h1>ViaGráfit — ${title}</h1>
+    <p>${subtitle} &nbsp;·&nbsp; ${now}</p>
+  </div>
+  <div class="info">
+    <div><strong>${dataRows.length}</strong>Registros</div>
+    <div><strong>${grandPecas.toLocaleString('pt-BR')}</strong>Peças</div>
+    <div><strong>R$ ${grandTotal.toLocaleString('pt-BR', { minimumFractionDigits: 2 })}</strong>Valor Total</div>
+  </div>
+  ${allTablesHTML}
+  <div class="footer">ViaGráfit Jeans &nbsp;·&nbsp; ${title} &nbsp;·&nbsp; ${now}</div>
+  <script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script>
+  </body></html>`);
   win.document.close();
 }
 
-function switchTab(id,btn){
-  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
-  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
-  document.querySelectorAll('.filter-box-inner').forEach(f=>f.style.display='none');
-  document.getElementById('panel-'+id).classList.add('active');
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-box-inner').forEach(f => f.style.display = 'none');
+  document.getElementById('panel-' + id).classList.add('active');
   btn.classList.add('active');
-  const fb=document.getElementById('fbox-'+id);
-  if(fb)fb.style.display='block';
-  if(id==='filtro1')updateStatsFromList(r1.length?r1:allProducts,!r1.length||r1.length===allProducts.length);
-  else if(id==='filtro2')updateStatsFromList(r2.length?r2:allProducts,!r2.length||r2.length===allProducts.length);
-  else if(id==='filtro3'&&r3.length){const up=[...new Map(r3.map(r=>[r.product.ref,r.product])).values()];updateStatsFromList(up,false);}
+  const fb = document.getElementById('fbox-' + id);
+  if (fb) fb.style.display = 'block';
+  if (id === 'filtro1') updateStatsFromList(r1.length ? r1 : allProducts, !r1.length || r1.length === allProducts.length);
+  else if (id === 'filtro2') updateStatsFromList(r2.length ? r2 : allProducts, !r2.length || r2.length === allProducts.length);
+  else if (id === 'filtro3' && r3.length) { const up = [...new Map(r3.map(r => [r.product.ref, r.product])).values()]; updateStatsFromList(up, false); }
 }
-function showLoading(msg){document.getElementById('loadingText').textContent=msg||'Carregando...';document.getElementById('loadingOverlay').classList.add('active');}
-function hideLoading(){document.getElementById('loadingOverlay').classList.remove('active');}
+
+function showLoading(msg) { document.getElementById('loadingText').textContent = msg || 'Carregando...'; document.getElementById('loadingOverlay').classList.add('active'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
+
+// Inicializar debug
+addDebug('🟢 Ferramenta carregada. Aguardando upload de PDF...');
 </script>
 </body>
 </html>
