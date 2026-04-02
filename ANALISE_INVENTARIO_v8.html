@@ -1,0 +1,981 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Via Gráfit — Análise de Inventário</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,800;1,700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #0e0e10; --surface: #161618; --surface2: #1e1e21;
+  --border: #2a2a2e; --accent: #c8a96e; --accent2: #e8c98e;
+  --text: #f0ede8; --muted: #777; --success: #4caf7d; --red: #cc2222;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { background: var(--bg); color: var(--text); font-family: 'DM Sans', sans-serif; min-height: 100vh; }
+
+.sticky-top { position: sticky; top: 0; z-index: 200; background: var(--bg); }
+
+header {
+  display: flex; align-items: center; justify-content: space-between;
+  padding: 10px 32px; border-bottom: 1px solid var(--border);
+  background: var(--surface); gap: 16px;
+}
+.logo-area { display: flex; align-items: center; gap: 14px; }
+.logo-badge {
+  width: 56px; height: 56px; border-radius: 50%;
+  background: #fff; display: flex; align-items: center; justify-content: center;
+  border: 2px solid #c8a96e; flex-shrink: 0; overflow: hidden;
+}
+.logo-text { display: flex; flex-direction: column; line-height: 1.15; }
+.logo-text .brand { font-family: 'Playfair Display', serif; font-weight: 800; font-size: 20px; color: var(--accent); }
+.logo-text .brand em { font-style: italic; }
+.logo-text .sub-brand { font-size: 9px; color: var(--muted); text-transform: uppercase; letter-spacing: .2em; }
+.header-info { font-size: 11px; color: var(--muted); text-align: right; }
+
+.tabs-bar-wrap { background: var(--bg); border-bottom: 1px solid var(--border); padding: 10px 32px 0; }
+.tabs { display: flex; gap: 4px; }
+.tab-btn {
+  padding: 9px 22px; border-radius: 8px 8px 0 0; border: 1px solid var(--border);
+  border-bottom: none; background: var(--surface2); color: var(--muted);
+  font-family: 'DM Sans', sans-serif; font-size: 13px; cursor: pointer; transition: all .2s; font-weight: 500;
+}
+.tab-btn.active { background: var(--surface); color: var(--text); font-weight: 700; border-bottom: 1px solid var(--surface); margin-bottom: -1px; }
+.tab-btn:hover:not(.active) { color: var(--text); }
+
+.filter-sticky { background: var(--surface); border-bottom: 1px solid var(--border); padding: 14px 32px; }
+.filter-box-inner h4 { font-size: 13px; font-weight: 700; color: var(--accent); margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+.filter-row { display: flex; gap: 10px; align-items: flex-end; flex-wrap: wrap; }
+.field-group { display: flex; flex-direction: column; gap: 4px; }
+.field-group label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .07em; }
+input[type=text], input[type=number], select {
+  background: var(--surface2); border: 1px solid var(--border); border-radius: 8px;
+  color: var(--text); font-family: 'DM Sans', sans-serif; font-size: 13px;
+  padding: 8px 12px; outline: none; transition: border-color .2s; min-width: 160px;
+}
+input:focus, select:focus { border-color: var(--accent); }
+input[type=text]::placeholder { color: var(--muted); }
+.btn { padding: 8px 18px; border-radius: 8px; border: none; font-family: 'DM Sans', sans-serif; font-size: 13px; font-weight: 600; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
+.btn-primary { background: var(--accent); color: #0e0e10; }
+.btn-primary:hover { background: var(--accent2); }
+.btn-outline { background: transparent; border: 1px solid var(--border); color: var(--text); }
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+.btn-export { background: var(--success); color: #fff; }
+
+.container { max-width: 1700px; margin: 0 auto; padding: 20px 32px; }
+
+.upload-zone {
+  border: 2px dashed var(--border); border-radius: 16px; padding: 40px;
+  text-align: center; cursor: pointer; transition: all .2s; background: var(--surface);
+  position: relative; margin-bottom: 24px;
+}
+.upload-zone:hover, .upload-zone.drag-over { border-color: var(--accent); background: #18181a; }
+.upload-zone input[type=file] { position: absolute; inset: 0; opacity: 0; cursor: pointer; width: 100%; }
+.upload-icon { font-size: 34px; margin-bottom: 9px; }
+.upload-zone h3 { font-family: 'Playfair Display', serif; font-size: 17px; margin-bottom: 5px; color: var(--accent); }
+.upload-zone p { color: var(--muted); font-size: 13px; }
+.progress-bar { background: var(--border); border-radius: 8px; height: 5px; margin-top: 14px; overflow: hidden; display: none; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 8px; width: 0%; transition: width .3s; }
+
+.stats-bar { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 24px; }
+.stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 15px; }
+.stat-card .label { font-size: 10px; color: var(--muted); text-transform: uppercase; letter-spacing: .08em; margin-bottom: 5px; }
+.stat-card .value { font-family: 'Playfair Display', serif; font-size: 22px; font-weight: 700; color: var(--accent); }
+.stat-card .sub { font-size: 10px; color: var(--muted); margin-top: 2px; }
+
+.tab-panel { display: none; }
+.tab-panel.active { display: block; }
+.results-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.results-count { font-size: 13px; color: var(--muted); }
+.results-count strong { color: var(--accent); }
+
+.table-wrap { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; }
+thead { background: var(--surface2); }
+th { padding: 10px; text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .09em; color: var(--muted); white-space: nowrap; border-bottom: 1px solid var(--border); }
+th.sz-th { text-align: center; min-width: 36px; padding: 10px 4px; font-size: 10px; }
+tbody tr { border-bottom: 1px solid var(--border); transition: background .1s; }
+tbody tr:last-child { border-bottom: none; }
+tbody tr:hover { background: var(--surface2); }
+td { padding: 7px 10px; font-size: 12px; vertical-align: middle; }
+td.ref { font-family: 'Playfair Display', serif; font-weight: 700; font-size: 13px; color: var(--accent); white-space: nowrap; }
+td.desc { max-width: 240px; white-space: normal; line-height: 1.4; }
+td.value { color: var(--success); font-weight: 500; text-align: right; white-space: nowrap; }
+td.total-val { font-weight: 700; color: var(--accent); text-align: right; white-space: nowrap; }
+td.pecas-total { font-weight: 700; color: var(--accent); text-align: center; white-space: nowrap; }
+td.sz-td { text-align: center; min-width: 36px; padding: 7px 4px; font-size: 12px; font-weight: 700; }
+td.sz-td.empty { color: var(--border); font-size: 10px; font-weight: 400; }
+td.sz-td.hl { color: var(--success); background: rgba(76,175,125,.08); }
+.tag-grupo { display: inline-block; background: rgba(200,169,110,.12); border: 1px solid rgba(200,169,110,.25); border-radius: 4px; padding: 2px 7px; font-size: 10px; color: var(--accent); font-weight: 700; }
+.schema-section-title { font-size: 11px; font-weight: 700; color: var(--accent); text-transform: uppercase; letter-spacing: .08em; padding: 10px 14px 6px; border-top: 1px solid var(--border); background: var(--surface2); }
+tr.panel-totals-row td { background: var(--surface2); border-top: 2px solid var(--accent); }
+td.panel-tot-label { color: var(--accent); font-size: 10px; font-weight: 700; white-space: nowrap; }
+td.panel-tot-cell { text-align: center; font-size: 12px; font-weight: 800; color: var(--accent); }
+td.panel-tot-cell.empty { color: var(--border); font-weight: 400; font-size: 10px; }
+td.panel-tot-sum { font-weight: 800; color: var(--accent); }
+.chip { display: inline-block; background: rgba(76,175,125,.15); border: 1px solid rgba(76,175,125,.3); color: var(--success); border-radius: 20px; padding: 3px 9px; font-size: 10px; font-weight: 700; }
+td.chip-cell { text-align: center; white-space: nowrap; }
+.empty-state { text-align: center; padding: 56px; color: var(--muted); }
+.empty-state .icon { font-size: 36px; margin-bottom: 10px; }
+#loadingOverlay { display: none; position: fixed; inset: 0; background: rgba(14,14,16,.9); z-index: 999; align-items: center; justify-content: center; flex-direction: column; gap: 14px; }
+#loadingOverlay.active { display: flex; }
+.spinner { width: 44px; height: 44px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-text { color: var(--muted); font-size: 13px; }
+</style>
+</head>
+<body>
+
+<div id="loadingOverlay">
+  <div class="spinner"></div>
+  <div class="loading-text" id="loadingText">Processando PDF...</div>
+</div>
+
+<div class="sticky-top">
+  <header>
+    <div class="logo-area">
+      <div class="logo-badge">
+        <svg viewBox="0 0 120 120" width="52" height="52" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="60" cy="60" r="58" fill="#fff"/>
+          <circle cx="60" cy="60" r="55" fill="none" stroke="#c8a96e" stroke-width="1.8" stroke-dasharray="4 3"/>
+          <polygon points="22,22 60,82 98,22 86,22 60,68 34,22" fill="#cc2222"/>
+          <polygon points="34,22 60,64 86,22 80,22 60,56 40,22" fill="#fff"/>
+          <text x="60" y="98" text-anchor="middle" font-family="Georgia,serif" font-style="italic" font-weight="700" font-size="13" fill="#1a1a1a">Via</text>
+          <text x="60" y="111" text-anchor="middle" font-family="Georgia,serif" font-weight="900" font-size="13" letter-spacing="-0.3" fill="#1a1a1a">Gráfit</text>
+          <text x="60" y="118" text-anchor="middle" font-family="Arial,sans-serif" font-weight="700" font-size="7" letter-spacing="3" fill="#c8a96e">JEANS</text>
+        </svg>
+      </div>
+      <div class="logo-text">
+        <span class="brand"><em>Via</em>Gráfit</span>
+        <span class="sub-brand">Análise de Inventário</span>
+      </div>
+    </div>
+    <div class="header-info" id="headerInfo">Nenhum arquivo carregado</div>
+  </header>
+
+  <div class="tabs-bar-wrap" id="tabsBarWrap" style="display:none">
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('f1',this)">🔍 Filtro 1 — Referência</button>
+      <button class="tab-btn" onclick="switchTab('f2',this)">📝 Filtro 2 — Descrição</button>
+      <button class="tab-btn" onclick="switchTab('f3',this)">📊 Filtro 3 — Grade Fechada</button>
+      <button class="tab-btn" onclick="switchTab('f4',this)">🔓 Filtro 4 — Grade Aberta</button>
+    </div>
+  </div>
+
+  <div class="filter-sticky" id="filterSticky" style="display:none">
+    <div class="filter-box-inner" id="fbox-f1">
+      <h4>🔍 Busca por Referência</h4>
+      <div class="filter-row">
+        <div class="field-group">
+          <label for="f1Input">Código / Referência</label>
+          <input type="text" id="f1Input" placeholder="ex: 127, 582, 28819..." oninput="runF1()" />
+        </div>
+        <div class="field-group"><label for="f1Grupo">Grupo</label><select id="f1Grupo" onchange="runF1()"><option value="">Todos</option></select></div>
+        <div class="field-group"><label>&nbsp;</label><button class="btn btn-outline" onclick="clearF1()">Limpar</button></div>
+        <div class="field-group" style="margin-left:auto"><label>&nbsp;</label><button class="btn btn-export" onclick="exportPDF(1)">⬇ Exportar PDF</button></div>
+      </div>
+    </div>
+    <div class="filter-box-inner" id="fbox-f2" style="display:none">
+      <h4>📝 Busca por Descrição</h4>
+      <div class="filter-row">
+        <div class="field-group"><label for="f2Input">Texto na descrição</label><input type="text" id="f2Input" placeholder="ex: CALÇA FEM, BERMUDA MAS..." style="min-width:280px" oninput="runF2()" /></div>
+        <div class="field-group"><label for="f2Grupo">Grupo</label><select id="f2Grupo" onchange="runF2()"><option value="">Todos</option></select></div>
+        <div class="field-group"><label>&nbsp;</label><button class="btn btn-outline" onclick="clearF2()">Limpar</button></div>
+        <div class="field-group" style="margin-left:auto"><label>&nbsp;</label><button class="btn btn-export" onclick="exportPDF(2)">⬇ Exportar PDF</button></div>
+      </div>
+    </div>
+    <div class="filter-box-inner" id="fbox-f3" style="display:none">
+      <h4>📊 Grade Fechada com Mínimo por Tamanho</h4>
+      <div class="filter-row">
+        <div class="field-group"><label for="f3MinTam">Mín. tam. consecutivos</label><input type="number" id="f3MinTam" value="6" min="2" max="12" style="min-width:110px"/></div>
+        <div class="field-group"><label for="f3MinQty">Qtd mín. por tamanho</label><input type="number" id="f3MinQty" value="1" min="1" style="min-width:110px"/></div>
+        <div class="field-group"><label for="f3Grupo">Grupo</label><select id="f3Grupo"><option value="">Todos</option></select></div>
+        <div class="field-group"><label>&nbsp;</label>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary" onclick="runF3()">Buscar</button>
+            <button class="btn btn-outline" onclick="clearF3()">Limpar</button>
+          </div>
+        </div>
+        <div class="field-group" style="margin-left:auto"><label>&nbsp;</label><button class="btn btn-export" onclick="exportPDF(3)">⬇ Exportar PDF</button></div>
+      </div>
+    </div>
+    <div class="filter-box-inner" id="fbox-f4" style="display:none">
+      <h4>🔓 Grade Aberta (Sequência Incompleta)</h4>
+      <div class="filter-row">
+        <div class="field-group"><label for="f4MaxTam">Máx. tam. consecutivos</label><input type="number" id="f4MaxTam" value="5" min="1" max="11" style="min-width:110px"/></div>
+        <div class="field-group"><label for="f4MinQty">Qtd mín. por tamanho</label><input type="number" id="f4MinQty" value="1" min="1" style="min-width:110px"/></div>
+        <div class="field-group"><label for="f4Grupo">Grupo</label><select id="f4Grupo"><option value="">Todos</option></select></div>
+        <div class="field-group"><label>&nbsp;</label>
+          <div style="display:flex;gap:6px">
+            <button class="btn btn-primary" onclick="runF4()">Buscar</button>
+            <button class="btn btn-outline" onclick="clearF4()">Limpar</button>
+          </div>
+        </div>
+        <div class="field-group" style="margin-left:auto"><label>&nbsp;</label><button class="btn btn-export" onclick="exportPDF(4)">⬇ Exportar PDF</button></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="container">
+  <div class="upload-zone" id="uploadZone">
+    <label for="pdfInput" style="position:absolute;inset:0;cursor:pointer;z-index:1;opacity:0;">Selecionar PDF</label>
+    <input type="file" id="pdfInput" accept=".pdf"/>
+    <div class="upload-icon">📂</div>
+    <h3>Arraste o PDF aqui ou clique para selecionar</h3>
+    <p>Inventário de Produtos Via Gráfit (formato Têxtil Full)</p>
+    <div class="progress-bar" id="progressBar"><div class="progress-fill" id="progressFill"></div></div>
+  </div>
+
+  <div class="stats-bar" id="statsBar" style="display:none">
+    <div class="stat-card"><div class="label">Referências</div><div class="value" id="statRefs">—</div><div class="sub">SKUs distintos</div></div>
+    <div class="stat-card"><div class="label">Total de Peças</div><div class="value" id="statPecas">—</div><div class="sub">Unidades em estoque</div></div>
+    <div class="stat-card"><div class="label">Valor Total</div><div class="value" id="statValor">—</div><div class="sub" id="statSub">Valor do estoque</div></div>
+    <div class="stat-card"><div class="label">Grupos</div><div class="value" id="statGrupos">—</div><div class="sub">Categorias</div></div>
+  </div>
+
+  <div class="tab-panel active" id="panel-f1">
+    <div class="results-header"><div class="results-count" id="count1">Aguardando busca...</div></div>
+    <div id="result1"><div class="empty-state"><div class="icon">🗂</div><p>Carregue um PDF para começar</p></div></div>
+  </div>
+  <div class="tab-panel" id="panel-f2">
+    <div class="results-header"><div class="results-count" id="count2">Aguardando busca...</div></div>
+    <div id="result2"><div class="empty-state"><div class="icon">🗂</div><p>Carregue um PDF para começar</p></div></div>
+  </div>
+  <div class="tab-panel" id="panel-f3">
+    <div class="results-header"><div class="results-count" id="count3">Aguardando busca...</div></div>
+    <div id="result3"><div class="empty-state"><div class="icon">📊</div><p>Configure os filtros e clique em Buscar</p></div></div>
+  </div>
+  <div class="tab-panel" id="panel-f4">
+    <div class="results-header"><div class="results-count" id="count4">Aguardando busca...</div></div>
+    <div id="result4"><div class="empty-state"><div class="icon">🔓</div><p>Configure os filtros e clique em Buscar</p></div></div>
+  </div>
+</div>
+
+<script>
+pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ═══════════════════════════════════════════════════════════════
+// NOVO PARSER — BASEADO EM POSIÇÃO X (coordenadas do PDF)
+// ═══════════════════════════════════════════════════════════════
+// As colunas de tamanho têm posições X FIXAS no PDF (em pontos):
+//
+// Schema A (34–48): 34→247, 36→272, 38→298, 40→323, 42→349, 44→374, 46→400, 48→425
+// Schema B (PP–5G): PP→246, P→274, M→299, G→325, GG→348, 3G→374, 4G→399, 5G→425
+// Schema C (50–56): 50→349, 52→374, 54→400, 56→425
+// Schema D (8–16):  8→325,  10→349, 12→374, 14→400, 16→425
+//
+// Quant.→448-472, ValorUn→507, Total→554
+// ═══════════════════════════════════════════════════════════════
+
+const SCHEMA_DEFS = {
+  A: [['34',247],['36',272],['38',298],['40',323],['42',349],['44',374],['46',400],['48',425]],
+  B: [['PP',246],['P',274],['M',299],['G',325],['GG',348],['3G',374],['4G',399],['5G',425]],
+  C: [['50',349],['52',374],['54',400],['56',425]],
+  D: [['8',325],['10',349],['12',374],['14',400],['16',425]],
+};
+
+const COL_TOL = 10; // tolerância em pixels
+
+function xToSize(x, schemaCols) {
+  for (const [label, cx] of schemaCols) {
+    if (Math.abs(x - cx) <= COL_TOL) return label;
+  }
+  return null;
+}
+
+function parseBR(s) {
+  if (!s) return 0;
+  try { return parseFloat(String(s).trim().replace(/\./g,'').replace(',','.')); }
+  catch(e) { return 0; }
+}
+
+function normalizeGrupo(g) {
+  g = (g||'').toUpperCase();
+  if (g.startsWith('CAL') && g !== 'CALÇA') g = 'CALÇA';
+  if (g.includes('BERMDA')) g = 'BERMUDA';
+  return g;
+}
+
+// ── Extrai itens de texto de UMA página com posições x, y ──
+async function getPageItems(page) {
+  const content = await page.getTextContent();
+  const vp = page.getViewport({ scale: 1.0 });
+  const items = [];
+  for (const item of content.items) {
+    if (!item.str || !item.str.trim()) continue;
+    // PDF.js dá transform=[a,b,c,d,e,f] onde e=x, f=y (bottom-left)
+    // Convertemos y: top_from_top = pageHeight - f
+    const x = item.transform[4];
+    const y = vp.height - item.transform[5];
+    items.push({ text: item.str.trim(), x: Math.round(x), y: Math.round(y) });
+  }
+  return items;
+}
+
+// ── Agrupa itens por linha (Y com tolerância de 3px) ──
+function groupByY(items) {
+  const rows = {};
+  for (const item of items) {
+    // Encontra bucket existente próximo
+    let key = null;
+    for (const k of Object.keys(rows)) {
+      if (Math.abs(parseInt(k) - item.y) <= 3) { key = k; break; }
+    }
+    if (!key) key = String(item.y);
+    if (!rows[key]) rows[key] = [];
+    rows[key].push(item);
+  }
+  // Ordena cada linha por x
+  for (const k of Object.keys(rows)) {
+    rows[k].sort((a, b) => a.x - b.x);
+  }
+  return rows;
+}
+
+async function parsePDF(arrayBuffer, onProgress) {
+  const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+  const totalPages = pdf.numPages;
+  const products = [];
+  const seenRefs = {}; // ref → produto (para merge de virada de página)
+
+  let curSchemaKey = 'A';
+  let curSchemaCols = SCHEMA_DEFS.A.slice();
+  let curProduct = null;
+
+  for (let pageNum = 1; pageNum <= totalPages; pageNum++) {
+    if (onProgress) onProgress(pageNum, totalPages);
+
+    const page = await pdf.getPage(pageNum);
+    const items = await getPageItems(page);
+    const rows = groupByY(items);
+    const sortedYs = Object.keys(rows).map(Number).sort((a, b) => a - b);
+
+    // Pré-indexa linhas com "Grupo:" para lookup
+    const grupoByY = {};
+    for (const y of sortedYs) {
+      const row = rows[y];
+      const ts = row.map(w => w.text);
+      const gi = ts.indexOf('Grupo:');
+      if (gi >= 0 && gi + 1 < ts.length) {
+        grupoByY[y] = normalizeGrupo(ts[gi + 1]);
+      }
+    }
+
+    for (let yi = 0; yi < sortedYs.length; yi++) {
+      const y = sortedYs[yi];
+      const row = rows[y];
+      const ts = row.map(w => w.text);
+      const tsSet = new Set(ts);
+
+      // ── 1. LINHA DE CABEÇALHO DE SCHEMA ──
+      if (tsSet.has('Quant.')) {
+        for (const [sk, cols] of Object.entries(SCHEMA_DEFS)) {
+          const labels = new Set(cols.map(c => c[0]));
+          const matches = ts.filter(t => labels.has(t)).length;
+          if (matches >= 2) {
+            // Detecta colunas presentes (schema pode ser parcial)
+            const present = cols.filter(([lb]) => tsSet.has(lb));
+            if (present.length >= 1) {
+              curSchemaKey = sk;
+              curSchemaCols = present;
+            }
+            break;
+          }
+        }
+        continue;
+      }
+
+      // ── 2. LINHA COM "Grupo:" — define o produto atual ──
+      if (tsSet.has('Grupo:') && !row.some(w => Math.abs(w.x - 247) <= COL_TOL && /^\d/.test(w.text))) {
+        const gi = ts.indexOf('Grupo:');
+        const grupo = normalizeGrupo(ts[gi + 1] || '');
+
+        // Procura linha de REF/DESC acima (até 30px)
+        let descRow = null;
+        for (let dy = yi - 1; dy >= 0; dy--) {
+          const prevY = sortedYs[dy];
+          if (y - prevY > 35) break;
+          const prow = rows[prevY];
+          if (prow && prow[0] && prow[0].x < 30 && /^\d[0-9A-Z]{2,}/.test(prow[0].text)) {
+            descRow = prow;
+            break;
+          }
+        }
+        if (!descRow) continue;
+
+        const ref = descRow[0].text;
+        const minSzX = Math.min(...curSchemaCols.map(c => c[1])) - 15;
+        const descWords = descRow.filter(w => w.x > 25 && w.x < minSzX && w.text !== '-');
+        let desc = descWords.map(w => w.text).join(' ').trim();
+        desc = desc.replace(new RegExp('\\s+' + ref.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '\\s*$'), '').trim();
+
+        if (seenRefs[ref]) {
+          curProduct = seenRefs[ref];
+        } else {
+          curProduct = {
+            ref, desc, grupo,
+            schema: curSchemaKey,
+            sizeSchema: curSchemaCols.map(c => c[0]),
+            variants: [], totalQty: 0, totalValue: 0,
+          };
+          products.push(curProduct);
+          seenRefs[ref] = curProduct;
+        }
+        continue;
+      }
+
+      // ── 3. LINHA DE VARIANTE ──
+      if (!curProduct || !curSchemaCols || !curSchemaCols.length) continue;
+      const first = row[0];
+      if (!first || first.x > 30 || !/^\d+$/.test(first.text)) continue;
+      if (tsSet.has('Grupo:') || tsSet.has('Quant.')) continue;
+
+      // Precisa ter Quant. na posição x≈472 (tolerância maior)
+      const quantW = row.find(w => Math.abs(w.x - 472) < 28);
+      if (!quantW) continue;
+      const totalQty = parseInt(quantW.text);
+      if (isNaN(totalQty) || totalQty === 0) continue;
+
+      // Valor unitário x≈507
+      const valorW = row.find(w => Math.abs(w.x - 507) < 20);
+      if (!valorW) continue;
+      const valorUn = parseBR(valorW.text);
+      if (valorUn <= 0) continue;
+
+      // Total x≈554
+      const totalW = row.find(w => Math.abs(w.x - 554) < 20);
+      const totalVal = totalW ? parseBR(totalW.text) : Math.round(totalQty * valorUn * 100) / 100;
+
+      // Nome da cor: palavras entre código e colunas de tamanho
+      const minSzX = Math.min(...curSchemaCols.map(c => c[1])) - 15;
+      const colorName = row.filter(w => w.x > 25 && w.x < minSzX && w.text !== '-')
+                           .map(w => w.text).join(' ').trim();
+
+      // Quantidades por tamanho via posição X
+      const qtys = Object.fromEntries(curSchemaCols.map(([lb]) => [lb, 0]));
+      for (const w of row) {
+        const sz = xToSize(w.x, curSchemaCols);
+        if (sz && sz in qtys) {
+          const v = parseInt(w.text);
+          if (!isNaN(v)) qtys[sz] = v;
+        }
+      }
+
+      // Fingerprint anti-duplicata
+      const fp = `${first.text}|${valorUn}|${totalQty}`;
+      if (curProduct.variants.some(v => v._fp === fp)) continue;
+
+      const variant = {
+        colorCode: first.text,
+        colorName, qtys, valorUn,
+        total: totalVal, totalQty,
+        _fp: fp,
+      };
+      curProduct.variants.push(variant);
+      curProduct.totalQty += totalQty;
+      curProduct.totalValue += totalVal;
+      // Só define schema se ainda não foi definido (primeiro encontro)
+      if (!curProduct.schema) {
+        curProduct.schema = curSchemaKey;
+        curProduct.sizeSchema = curSchemaCols.map(c => c[0]);
+      }
+    }
+  }
+
+  // Limpa fingerprints
+  for (const p of products) {
+    for (const v of p.variants) delete v._fp;
+  }
+
+  return products.filter(p => p.variants.length > 0);
+}
+
+// ═══════════════════════════════════════════════════════════════
+// ESTADO GLOBAL
+// ═══════════════════════════════════════════════════════════════
+let allProducts = [];
+let f1Results = [], f2Results = [], f3Results = [], f4Results = [];
+
+// Schema canônico completo para exibição
+const CANONICAL = {
+  A: ['34','36','38','40','42','44','46','48'],
+  B: ['PP','P','M','G','GG','3G','4G','5G'],
+  C: ['50','52','54','56'],
+  D: ['8','10','12','14','16'],
+};
+
+function getCanonical(sk) { return CANONICAL[sk] || CANONICAL.A; }
+
+function getSchemaKey(p) { return p.schema || 'A'; }
+
+// ═══════════════════════════════════════════════════════════════
+// UPLOAD E PROCESSAMENTO
+// ═══════════════════════════════════════════════════════════════
+document.getElementById('pdfInput').addEventListener('change', async e => {
+  const file = e.target.files[0]; if (!file) return; await loadFile(file);
+});
+const zone = document.getElementById('uploadZone');
+zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+zone.addEventListener('drop', async e => {
+  e.preventDefault(); zone.classList.remove('drag-over');
+  const file = e.dataTransfer.files[0];
+  if (file && file.type === 'application/pdf') await loadFile(file);
+});
+
+async function loadFile(file) {
+  showLoading('Lendo PDF...');
+  const pBar = document.getElementById('progressBar');
+  const pFill = document.getElementById('progressFill');
+  pBar.style.display = 'block'; pFill.style.width = '5%';
+
+  try {
+    const buf = await file.arrayBuffer();
+    pFill.style.width = '15%';
+
+    allProducts = await parsePDF(buf, (cur, total) => {
+      document.getElementById('loadingText').textContent = `Página ${cur} de ${total}...`;
+      pFill.style.width = (15 + Math.floor((cur / total) * 75)) + '%';
+    });
+
+    pFill.style.width = '100%';
+    updateStats();
+    populateSelects();
+    document.getElementById('statsBar').style.display = 'grid';
+    document.getElementById('tabsBarWrap').style.display = 'block';
+    document.getElementById('filterSticky').style.display = 'block';
+    document.getElementById('headerInfo').textContent = `${file.name} · ${allProducts.length} referências`;
+    runF1(); runF2();
+    setTimeout(() => { pBar.style.display = 'none'; hideLoading(); }, 400);
+  } catch (err) {
+    hideLoading();
+    alert('Erro ao processar PDF: ' + err.message);
+    console.error(err);
+  }
+}
+
+function updateStats() {
+  let totalPecas = 0, totalValor = 0;
+  for (const p of allProducts) {
+    p.totalQty = p.variants.reduce((s, v) => s + v.totalQty, 0);
+    p.totalValue = p.variants.reduce((s, v) => s + v.total, 0);
+    totalPecas += p.totalQty;
+    totalValor += p.totalValue;
+  }
+  document.getElementById('statRefs').textContent = allProducts.length.toLocaleString('pt-BR');
+  document.getElementById('statPecas').textContent = totalPecas.toLocaleString('pt-BR');
+  document.getElementById('statValor').textContent = 'R$ ' + totalValor.toLocaleString('pt-BR', {minimumFractionDigits:2});
+  document.getElementById('statGrupos').textContent = new Set(allProducts.map(p => p.grupo)).size;
+}
+
+function populateSelects() {
+  const grupos = [...new Set(allProducts.map(p => p.grupo))].sort();
+  ['f1Grupo','f2Grupo','f3Grupo','f4Grupo'].forEach(id => {
+    const sel = document.getElementById(id);
+    sel.innerHTML = '<option value="">Todos os grupos</option>';
+    grupos.forEach(g => {
+      const o = document.createElement('option'); o.value = g; o.textContent = g; sel.appendChild(o);
+    });
+  });
+}
+
+// ═══════════════════════════════════════════════════════════════
+// CONSTRUTOR DE TABELA (motor comum)
+// ═══════════════════════════════════════════════════════════════
+function buildTable(data, opts = {}) {
+  // data: array de {product, variant, run?, runLength?}
+  if (!data.length) return '<div class="empty-state"><div class="icon">🔍</div><p>Nenhum resultado encontrado</p></div>';
+
+  // Agrupa por schema
+  const groups = {};
+  for (const item of data) {
+    const sk = getSchemaKey(item.product);
+    if (!groups[sk]) groups[sk] = [];
+    groups[sk].push(item);
+  }
+  for (const sk of Object.keys(groups)) {
+    groups[sk].sort((a, b) => {
+      const na = parseInt(a.product.ref) || 0, nb = parseInt(b.product.ref) || 0;
+      if (na !== nb) return na - nb;
+      return a.product.ref.localeCompare(b.product.ref);
+    });
+  }
+
+  const schLabel = {A:'Grade 34–48',B:'Grade PP–5G',C:'Grade 50–56',D:'Grade 8–16'};
+  let html = '';
+  const numGroups = Object.keys(groups).length;
+
+  for (const [sk, items] of Object.entries(groups)) {
+    const canonical = getCanonical(sk);
+    const showSeq = !!opts.showSeq;
+
+    const sizeHeaders = canonical.map(sz => `<th class="sz-th">${sz}</th>`).join('');
+    let thead = `<tr><th>Referência</th><th>Descrição</th><th>Grupo</th>`;
+    if (showSeq) thead += `<th style="text-align:center">Seq.</th>`;
+    thead += sizeHeaders;
+    thead += `<th style="text-align:center">Peças</th><th style="text-align:right">Valor Unit.</th><th style="text-align:right">Total</th></tr>`;
+
+    const totals = Object.fromEntries(canonical.map(sz => [sz, 0]));
+    let subPecas = 0, subTotal = 0;
+    let tbody = '';
+
+    for (const item of items) {
+      const p = item.product;
+      const v = item.variant;
+      const run = item.run || null;
+      const rl = item.runLength || 0;
+      const qty = v.totalQty;
+      if (!qty) continue;
+      subPecas += qty; subTotal += v.total;
+
+      const hlSet = run ? new Set(run.map(r => r.sz)) : null;
+
+      const sizeCells = canonical.map(sz => {
+        const q = v.qtys[sz] || 0;
+        if (q > 0) totals[sz] += q;
+        const isHl = hlSet && hlSet.has(sz) ? ' hl' : '';
+        return q ? `<td class="sz-td${isHl}">${q}</td>` : `<td class="sz-td empty">—</td>`;
+      }).join('');
+
+      const cLabel = `<span style="color:var(--muted);font-size:10px"> · ${v.colorName}</span>`;
+      const seqCell = showSeq ? `<td class="chip-cell"><span class="chip" ${opts.isOpen ? 'style="background:rgba(204,34,34,.15);border-color:rgba(204,34,34,.35);color:var(--red)"' : ''}>${rl} tam</span></td>` : '';
+
+      tbody += `<tr>
+        <td class="ref">${p.ref}</td>
+        <td class="desc">${p.desc}${cLabel}</td>
+        <td><span class="tag-grupo">${p.grupo}</span></td>
+        ${seqCell}
+        ${sizeCells}
+        <td class="pecas-total">${qty}</td>
+        <td class="value">R$&nbsp;${v.valorUn.toFixed(2).replace('.',',')}</td>
+        <td class="total-val">R$&nbsp;${(v.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+      </tr>`;
+    }
+
+    const colspan = showSeq ? 4 : 3;
+    tbody += `<tr style="border-top:1px solid var(--border);background:var(--surface2);">
+      <td colspan="${colspan}" style="color:var(--muted);font-size:11px;font-weight:600;padding:7px 10px;">Subtotal ${schLabel[sk]||sk}</td>
+      ${canonical.map(()=>'<td></td>').join('')}
+      <td class="pecas-total">${subPecas.toLocaleString('pt-BR')}</td>
+      <td></td>
+      <td class="total-val">R$&nbsp;${subTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+    </tr>`;
+
+    if (canonical.some(sz => totals[sz] > 0)) {
+      const totCells = canonical.map(sz => {
+        const q = totals[sz];
+        return q > 0 ? `<td class="panel-tot-cell">${q.toLocaleString('pt-BR')}</td>`
+                     : `<td class="panel-tot-cell empty">—</td>`;
+      }).join('');
+      tbody += `<tr class="panel-totals-row">
+        <td colspan="${colspan}" class="panel-tot-label">■ Total por tamanho</td>
+        ${totCells}
+        <td class="panel-tot-sum pecas-total">${subPecas.toLocaleString('pt-BR')}</td>
+        <td></td>
+        <td class="panel-tot-sum total-val">R$&nbsp;${subTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+      </tr>`;
+    }
+
+    if (numGroups > 1) html += `<div class="schema-section-title">${schLabel[sk]||sk}</div>`;
+    html += `<div class="table-wrap" style="margin-bottom:${numGroups>1?'18px':'0'}"><table><thead>${thead}</thead><tbody>${tbody}</tbody></table></div>`;
+  }
+  return html;
+}
+
+// ═══════════════════════════════════════════════════════════════
+// FILTRO 1 — REFERÊNCIA
+// ═══════════════════════════════════════════════════════════════
+function runF1() {
+  const q = document.getElementById('f1Input').value.trim().toUpperCase();
+  const g = document.getElementById('f1Grupo').value;
+  let results = allProducts;
+
+  if (q) {
+    results = results.filter(p => {
+      const ref = p.ref.toUpperCase();
+      if (ref.startsWith(q)) return true;
+      // Busca por texto na descrição se não parece código numérico
+      if (!/^\d/.test(q)) return p.desc.toUpperCase().includes(q);
+      return false;
+    });
+  }
+  if (g) results = results.filter(p => p.grupo === g);
+
+  f1Results = results;
+  const data = results.flatMap(p => p.variants.map(v => ({ product: p, variant: v })));
+  const total = data.reduce((s, d) => s + d.variant.totalQty, 0);
+  const valor = data.reduce((s, d) => s + d.variant.total, 0);
+  document.getElementById('count1').innerHTML = `<strong>${results.length}</strong> referência(s) · <strong>${total.toLocaleString('pt-BR')}</strong> peças · <strong>R$&nbsp;${valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong>`;
+  document.getElementById('result1').innerHTML = buildTable(data);
+}
+function clearF1() { document.getElementById('f1Input').value = ''; document.getElementById('f1Grupo').value = ''; runF1(); }
+
+// ═══════════════════════════════════════════════════════════════
+// FILTRO 2 — DESCRIÇÃO
+// ═══════════════════════════════════════════════════════════════
+function runF2() {
+  const q = document.getElementById('f2Input').value.trim().toUpperCase();
+  const g = document.getElementById('f2Grupo').value;
+  let results = allProducts;
+  if (q) results = results.filter(p => p.desc.toUpperCase().includes(q));
+  if (g) results = results.filter(p => p.grupo === g);
+
+  f2Results = results;
+  const data = results.flatMap(p => p.variants.map(v => ({ product: p, variant: v })));
+  const total = data.reduce((s, d) => s + d.variant.totalQty, 0);
+  const valor = data.reduce((s, d) => s + d.variant.total, 0);
+  document.getElementById('count2').innerHTML = `<strong>${results.length}</strong> referência(s) · <strong>${total.toLocaleString('pt-BR')}</strong> peças · <strong>R$&nbsp;${valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong>`;
+  document.getElementById('result2').innerHTML = buildTable(data);
+}
+function clearF2() { document.getElementById('f2Input').value = ''; document.getElementById('f2Grupo').value = ''; runF2(); }
+
+// ═══════════════════════════════════════════════════════════════
+// FILTRO 3 — GRADE FECHADA
+// ═══════════════════════════════════════════════════════════════
+function findMaxRun(qtys, schemaCols, minQty) {
+  const sizes = schemaCols;
+  let best = { length: 0, run: [] };
+  let cur = [];
+  for (const sz of sizes) {
+    if ((qtys[sz] || 0) >= minQty) {
+      cur.push({ sz, q: qtys[sz] });
+      if (cur.length > best.length) best = { length: cur.length, run: [...cur] };
+    } else {
+      cur = [];
+    }
+  }
+  return best;
+}
+
+function runF3() {
+  const minTam = parseInt(document.getElementById('f3MinTam').value) || 6;
+  const minQty = parseInt(document.getElementById('f3MinQty').value) || 1;
+  const g = document.getElementById('f3Grupo').value;
+
+  const results = [];
+  for (const p of allProducts) {
+    if (g && p.grupo !== g) continue;
+    const canonical = getCanonical(p.schema || 'A');
+    for (const v of p.variants) {
+      const run = findMaxRun(v.qtys, canonical, minQty);
+      if (run.length >= minTam) {
+        results.push({ product: p, variant: v, run: run.run, runLength: run.length });
+      }
+    }
+  }
+  results.sort((a, b) => b.runLength - a.runLength || (parseInt(a.product.ref)||0) - (parseInt(b.product.ref)||0));
+
+  f3Results = results;
+  const total = results.reduce((s, r) => s + r.variant.totalQty, 0);
+  const valor = results.reduce((s, r) => s + r.variant.total, 0);
+  document.getElementById('count3').innerHTML = `<strong>${results.length}</strong> grade(s) fechada(s) (≥${minTam} tam. com ≥${minQty} pç/tam) · <strong>${total.toLocaleString('pt-BR')}</strong> peças · <strong>R$&nbsp;${valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong>`;
+  document.getElementById('result3').innerHTML = buildTable(results, { showSeq: true, isOpen: false });
+}
+function clearF3() { document.getElementById('f3MinTam').value=6; document.getElementById('f3MinQty').value=1; document.getElementById('f3Grupo').value=''; document.getElementById('result3').innerHTML='<div class="empty-state"><div class="icon">📊</div><p>Configure os filtros e clique em Buscar</p></div>'; document.getElementById('count3').textContent='Aguardando busca...'; f3Results=[]; }
+
+// ═══════════════════════════════════════════════════════════════
+// FILTRO 4 — GRADE ABERTA
+// ═══════════════════════════════════════════════════════════════
+function runF4() {
+  const maxTam = parseInt(document.getElementById('f4MaxTam').value) || 5;
+  const minQty = parseInt(document.getElementById('f4MinQty').value) || 1;
+  const g = document.getElementById('f4Grupo').value;
+
+  const results = [];
+  for (const p of allProducts) {
+    if (g && p.grupo !== g) continue;
+    const canonical = getCanonical(p.schema || 'A');
+    for (const v of p.variants) {
+      const run = findMaxRun(v.qtys, canonical, minQty);
+      if (run.length > 0 && run.length < maxTam + 1) {
+        results.push({ product: p, variant: v, run: run.run, runLength: run.length });
+      }
+    }
+  }
+  results.sort((a, b) => (parseInt(a.product.ref)||0) - (parseInt(b.product.ref)||0));
+
+  f4Results = results;
+  const total = results.reduce((s, r) => s + r.variant.totalQty, 0);
+  const valor = results.reduce((s, r) => s + r.variant.total, 0);
+  document.getElementById('count4').innerHTML = `<strong>${results.length}</strong> grade(s) aberta(s) (seq &lt;${maxTam+1} tam) · <strong>${total.toLocaleString('pt-BR')}</strong> peças · <strong>R$&nbsp;${valor.toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong>`;
+  document.getElementById('result4').innerHTML = buildTable(results, { showSeq: true, isOpen: true });
+}
+function clearF4() { document.getElementById('f4MaxTam').value=5; document.getElementById('f4MinQty').value=1; document.getElementById('f4Grupo').value=''; document.getElementById('result4').innerHTML='<div class="empty-state"><div class="icon">🔓</div><p>Configure os filtros e clique em Buscar</p></div>'; document.getElementById('count4').textContent='Aguardando busca...'; f4Results=[]; }
+
+// ═══════════════════════════════════════════════════════════════
+// EXPORTAÇÃO PDF
+// ═══════════════════════════════════════════════════════════════
+function exportPDF(filterNum) {
+  const now = new Date().toLocaleString('pt-BR');
+  const titles = {1:'Filtro 1 — Referência', 2:'Filtro 2 — Descrição', 3:'Filtro 3 — Grade Fechada', 4:'Filtro 4 — Grade Aberta'};
+  const title = titles[filterNum] || '';
+  
+  let dataRows = [];
+  if (filterNum === 1) dataRows = f1Results.flatMap(p => p.variants.map(v => ({ product:p, variant:v })));
+  else if (filterNum === 2) dataRows = f2Results.flatMap(p => p.variants.map(v => ({ product:p, variant:v })));
+  else if (filterNum === 3) dataRows = f3Results;
+  else if (filterNum === 4) dataRows = f4Results;
+
+  if (!dataRows.length) { alert('Sem dados para exportar.'); return; }
+
+  const grandPecas = dataRows.reduce((s, r) => s + (r.variant||r).totalQty, 0);
+  const grandTotal = dataRows.reduce((s, r) => s + (r.variant||r).total, 0);
+
+  // Agrupa por schema
+  const schGroups = {};
+  for (const r of dataRows) {
+    const sk = getSchemaKey(r.product);
+    if (!schGroups[sk]) schGroups[sk] = [];
+    schGroups[sk].push(r);
+  }
+
+  const ALL_SCHEMAS = CANONICAL;
+  const schLabel = {A:'34–48',B:'PP–5G',C:'50–56',D:'8–16'};
+  let allTablesHTML = '';
+
+  for (const [sk, rows] of Object.entries(schGroups)) {
+    const canonical = ALL_SCHEMAS[sk] || ALL_SCHEMAS.A;
+    const isSeq = filterNum >= 3;
+    const isOpen = filterNum === 4;
+
+    let thead = `<tr><th>Ref.</th><th>Descrição</th><th>Grupo</th>`;
+    if (isSeq) thead += `<th>Seq.</th>`;
+    thead += canonical.map(sz => `<th class="sz-h">${sz}</th>`).join('');
+    thead += `<th class="r">Peças</th><th class="r">V.Unit</th><th class="r">Total</th></tr>`;
+
+    const sectionTotals = Object.fromEntries(canonical.map(sz => [sz, 0]));
+    let subPecas = 0, subTotal = 0, tbody = '';
+
+    for (const r of rows) {
+      const v = r.variant || r;
+      const p = r.product;
+      const qty = v.totalQty;
+      subPecas += qty; subTotal += v.total;
+
+      const hlSet = r.run ? new Set(r.run.map(x => x.sz)) : null;
+
+      const qtyCells = canonical.map(sz => {
+        const q = v.qtys[sz] || 0;
+        if (q > 0) sectionTotals[sz] += q;
+        const isHl = hlSet && hlSet.has(sz);
+        if (!q) return `<td class="sz-c empty">—</td>`;
+        return `<td class="sz-c${isHl?' hl':''}">${q}</td>`;
+      }).join('');
+
+      const seqCell = isSeq ? `<td class="seq${isOpen?' open':''}">${r.runLength||0}</td>` : '';
+      const cName = v.colorName ? ` · ${v.colorName}` : '';
+
+      tbody += `<tr>
+        <td class="ref-c">${p.ref}</td>
+        <td class="desc-c">${p.desc}${cName}</td>
+        <td class="grp-c">${p.grupo}</td>
+        ${seqCell}
+        ${qtyCells}
+        <td class="r">${qty}</td>
+        <td class="r">R$ ${v.valorUn.toFixed(2).replace('.',',')}</td>
+        <td class="r">R$ ${(v.total||0).toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+      </tr>`;
+    }
+
+    const cspan = isSeq ? 4 : 3;
+    tbody += `<tr class="foot">
+      <td colspan="${cspan}">Subtotal Grade ${schLabel[sk]||sk}</td>
+      ${canonical.map(()=>`<td></td>`).join('')}
+      <td class="r">${subPecas.toLocaleString('pt-BR')}</td><td></td>
+      <td class="r">R$ ${subTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+    </tr>`;
+
+    if (canonical.some(sz => sectionTotals[sz] > 0)) {
+      const totCells = canonical.map(sz => {
+        const q = sectionTotals[sz];
+        return q > 0 ? `<td class="sz-c tot-cell">${q.toLocaleString('pt-BR')}</td>`
+                     : `<td class="sz-c empty tot-cell">—</td>`;
+      }).join('');
+      tbody += `<tr class="totals-row">
+        <td colspan="${cspan}" class="tot-label">■ Total por tamanho</td>
+        ${totCells}
+        <td class="r tot-sum">${subPecas.toLocaleString('pt-BR')}</td><td></td>
+        <td class="r tot-sum">R$ ${subTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})}</td>
+      </tr>`;
+    }
+
+    if (Object.keys(schGroups).length > 1)
+      allTablesHTML += `<h3 class="sch-title">Grade ${schLabel[sk]||sk}</h3>`;
+    allTablesHTML += `<table><thead>${thead}</thead><tbody>${tbody}</tbody></table><br>`;
+  }
+
+  const win = window.open('','_blank');
+  if (!win) { alert('Permita popups para exportar'); return; }
+  win.document.write(`<!DOCTYPE html><html><head><meta charset="UTF-8"><title>ViaGráfit — ${title}</title>
+<style>
+  body{font-family:Arial,sans-serif;font-size:8.5px;color:#222;margin:14px}
+  .hdr{border-bottom:2px solid #c8a96e;padding-bottom:8px;margin-bottom:8px}
+  .hdr h1{font-size:14px;color:#8b6914;margin:0 0 2px}
+  .hdr p{font-size:8px;color:#666;margin:0}
+  .info{display:flex;gap:20px;background:#fdf9f0;border:1px solid #e8d9b0;border-radius:4px;padding:6px 12px;margin-bottom:10px}
+  .info div{font-size:8.5px} .info strong{color:#8b6914;font-size:13px;display:block}
+  .sch-title{font-size:10px;color:#8b6914;margin:8px 0 3px;border-bottom:1px solid #e8d9b0;padding-bottom:2px}
+  table{width:100%;border-collapse:collapse;margin-bottom:4px}
+  thead tr{background:#2a2a2e}
+  th{color:#fff;padding:4px 5px;text-align:left;font-size:7.5px;text-transform:uppercase;letter-spacing:.04em;white-space:nowrap}
+  th.sz-h{text-align:center;min-width:22px}
+  th.r{text-align:right}
+  td{padding:3px 5px;border-bottom:1px solid #eee;vertical-align:middle;white-space:nowrap}
+  td.ref-c{font-weight:700;color:#8b6914;font-size:9px}
+  td.desc-c{white-space:normal;font-size:8px;max-width:200px}
+  td.grp-c{font-size:8px}
+  td.sz-c{text-align:center;font-weight:700;min-width:22px;font-size:9px}
+  td.sz-c.empty{text-align:center;color:#ccc;font-weight:400}
+  td.sz-c.hl{color:#2a7a50;background:#eaf7f0}
+  td.seq{text-align:center;font-weight:700;background:#eaf7f0;color:#2a7a50}
+  td.seq.open{background:#fdeaea;color:#cc2222}
+  td.r{text-align:right}
+  tr:nth-child(even) td{background:#fafafa}
+  tr.foot td{font-weight:700;background:#fdf9f0;border-top:2px solid #c8a96e}
+  tr.totals-row td{background:#2a2a2e;border-top:2px solid #c8a96e}
+  td.tot-label{color:#c8a96e;font-weight:700;font-size:8px}
+  td.tot-cell{text-align:center;font-weight:800;color:#c8a96e;font-size:9.5px}
+  td.tot-cell.empty{color:#444;font-weight:400}
+  td.tot-sum{text-align:right;font-weight:800;color:#c8a96e}
+  .grand{display:flex;gap:20px;background:#2a2a2e;color:#fff;border-radius:4px;padding:6px 12px;margin-bottom:10px}
+  .grand div{font-size:8.5px;color:#ccc} .grand strong{color:#c8a96e;font-size:13px;display:block}
+  .footer{margin-top:10px;font-size:7.5px;color:#bbb;text-align:right}
+  @media print{body{margin:4px}}
+</style></head><body>
+<div class="hdr"><h1>ViaGráfit — ${title}</h1><p>${now}</p></div>
+<div class="info">
+  <div><strong>${dataRows.length}</strong> Registros</div>
+  <div><strong>${grandPecas.toLocaleString('pt-BR')}</strong> Peças</div>
+  <div><strong>R$ ${grandTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong> Valor Total</div>
+</div>
+${allTablesHTML}
+<div class="grand">
+  <div><strong>${grandPecas.toLocaleString('pt-BR')}</strong> Total Peças</div>
+  <div><strong>R$ ${grandTotal.toLocaleString('pt-BR',{minimumFractionDigits:2})}</strong> Total Geral</div>
+</div>
+<div class="footer">ViaGráfit Jeans · ${title} · ${now}</div>
+<script>window.onload=()=>setTimeout(()=>window.print(),350)<\/script>
+</body></html>`);
+  win.document.close();
+}
+
+// ═══════════════════════════════════════════════════════════════
+// UI HELPERS
+// ═══════════════════════════════════════════════════════════════
+function switchTab(id, btn) {
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.filter-box-inner').forEach(f => f.style.display = 'none');
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+  const fb = document.getElementById('fbox-' + id);
+  if (fb) fb.style.display = 'block';
+}
+function showLoading(msg) { document.getElementById('loadingText').textContent = msg || 'Carregando...'; document.getElementById('loadingOverlay').classList.add('active'); }
+function hideLoading() { document.getElementById('loadingOverlay').classList.remove('active'); }
+</script>
+</body>
+</html>
