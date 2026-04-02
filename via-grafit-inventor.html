@@ -57,7 +57,7 @@
     <div class="filter-box-inner" id="fbox-filtro1">
       <h4>🔍 Busca por Referência</h4>
       <div class="filter-row">
-        <div class="field-group"><label>Código / Referência</label><input type="text" id="f1Input" placeholder="ex: 1100, 28819, 585T..." oninput="runFilter1()"/></div>
+        <div class="field-group"><label>Código / Referência</label><input type="text" id="f1Input" placeholder="ex: 1100, 28819, 585T..." oninput="debouncedFilter1()"/></div>
         <div class="field-group"><label>Grupo</label><select id="f1Grupo" onchange="runFilter1()"><option value="">Todos os grupos</option></select></div>
         <div class="field-group"><label>&nbsp;</label><button class="btn btn-outline" onclick="clearFilter1()">Limpar</button></div>
         <div class="field-group" style="margin-left:auto"><label>&nbsp;</label><button class="btn btn-export" onclick="exportPDF(1)">⬇ Exportar PDF</button></div>
@@ -66,7 +66,7 @@
     <div class="filter-box-inner" id="fbox-filtro2" style="display:none">
       <h4>📝 Busca por Descrição</h4>
       <div class="filter-row">
-        <div class="field-group"><label>Texto na descrição</label><input type="text" id="f2Input" placeholder="ex: BERMUDA FEM, CALÇA MASC, SHORTS..." style="min-width:280px" oninput="runFilter2()"/></div>
+        <div class="field-group"><label>Texto na descrição</label><input type="text" id="f2Input" placeholder="ex: BERMUDA FEM, CALÇA MASC, SHORTS..." style="min-width:280px" oninput="debouncedFilter2()"/></div>
         <div class="field-group"><label>Grupo</label><select id="f2Grupo" onchange="runFilter2()"><option value="">Todos os grupos</option></select></div>
         <div class="field-group"><label>&nbsp;</label><button class="btn btn-outline" onclick="clearFilter2()">Limpar</button></div>
         <div class="field-group" style="margin-left:auto"><label>&nbsp;</label><button class="btn btn-export" onclick="exportPDF(2)">⬇ Exportar PDF</button></div>
@@ -123,6 +123,17 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs
 let allProducts = [];
 let r1 = [], r2 = [], r3 = [];
 let debugLog = [];
+
+// Debounce para evitar travamento ao digitar nos filtros
+function debounce(fn, delay) {
+  let timer;
+  return function(...args) {
+    clearTimeout(timer);
+    timer = setTimeout(() => fn.apply(this, args), delay);
+  };
+}
+const debouncedFilter1 = debounce(runFilter1, 300);
+const debouncedFilter2 = debounce(runFilter2, 300);
 
 // Função para adicionar ao log de debug
 function addDebug(msg, data = null) {
